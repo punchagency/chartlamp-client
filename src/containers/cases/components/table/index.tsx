@@ -139,6 +139,7 @@ export default function CasesTable() {
     handleTargetCompletionChange,
     handleTargetComModalChange,
     createSortHandler,
+    formatDate,
   } = useCases();
 
   return (
@@ -236,7 +237,7 @@ export default function CasesTable() {
                     {row.plaintiff}
                   </StyledTableCell>
                   <StyledTableCell align="center">
-                    {row.dateOfClaim}
+                    {formatDate(row.dateOfClaim)}
                   </StyledTableCell>
                   <StyledTableCell
                     align="center"
@@ -261,7 +262,7 @@ export default function CasesTable() {
                       handleTargetComModalChange(true, row._id);
                     }}
                   >
-                    {row.targetCompletion}
+                    {formatDate(row.targetCompletion)}
                     <IconButton>
                       <EditIcon />
                     </IconButton>
