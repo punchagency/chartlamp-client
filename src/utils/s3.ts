@@ -27,7 +27,6 @@ export const createParams = (file: any) => {
 };
 
 export const uploadFileToS3 = async (file: any) => {
-  console.log('')
   const params = createParams(file);
   const command = new PutObjectCommand(params);
   try {
