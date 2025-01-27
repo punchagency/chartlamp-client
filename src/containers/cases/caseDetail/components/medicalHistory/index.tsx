@@ -134,10 +134,10 @@ export default function MapView({ caseDetail, loading }: MapViewProps) {
   return (
     <Stack
       flex={1}
-      bgcolor={NEUTRAL[0]}
       sx={{
         boxShadow: { xs: "none", sm: "0px 0px 10px rgba(5, 113, 112, 0.04)" },
         borderRadius: { xs: 0, sm: pxToRem(24) },
+        background: NEUTRAL[0]
       }}
     >
       <TopNav />
@@ -151,8 +151,8 @@ export default function MapView({ caseDetail, loading }: MapViewProps) {
           // Add your handleUpload logic here
         }}
       />
-      <Stack>
-        <Stack>
+      <Stack flex={1}>
+        <Stack flex={1}>
           {!loading && caseDetail && caseDetail?.reports.length > 0 && getView}
         </Stack>
         {(!Boolean(caseDetail?.reports.length) || loading) && (

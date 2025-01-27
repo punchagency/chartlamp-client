@@ -13,14 +13,14 @@ import CustomTagModal from "../components/customTag";
 import NotesModal from "../components/notesModal";
 import ShareModal from "../components/share";
 import { CasesEnum } from "../constants";
-import NotesView from "./components/notes";
 import Maintenance from "./components/maintenance";
 import MapView from "./components/medicalHistory";
+import NotesView from "./components/notes";
+import UseNotes from "./components/notes/hooks";
 import Report from "./components/reports";
 import { CaseDetailEnum } from "./constants";
 import { useCaseDetails } from "./hooks";
 import { notesModalVar } from "./state";
-import UseNotes from "./components/notes/hooks";
 
 export default function CaseDetailPageContainer() {
   const notesModalState = useReactiveVar(notesModalVar);
@@ -44,10 +44,7 @@ export default function CaseDetailPageContainer() {
     getCaseNotes,
   } = useCaseDetails();
 
-  const {
-    handleUpdateAddNote,
-    loadingCreateNote,
-  } = UseNotes({
+  const { handleUpdateAddNote, loadingCreateNote } = UseNotes({
     caseNotes,
   });
 
@@ -110,7 +107,15 @@ export default function CaseDetailPageContainer() {
   }, [tab, caseData, caseDetail, loading, caseLoading]);
 
   return (
-    <Stack flex={1} gap={pxToRem(12)}>
+    <Stack
+      sx={{
+        height: "calc(100vh - 4.5rem)",
+        width: "100%",
+        // background: "#fff",
+        overflowY: "hidden",
+      }}
+      gap={pxToRem(12)}
+    >
       <NavBack
         handleNavigation={() =>
           router.push(`/dashboard/cases/${CasesEnum.management}`)

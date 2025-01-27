@@ -35,7 +35,7 @@ export default function Filter({
         }
         handleSelect={() => ""}
       />
-      <FilterDrop
+      {/* <FilterDrop
         title="Date of Claim"
         options={
           [
@@ -43,7 +43,7 @@ export default function Filter({
           ]
         }
         handleSelect={() => ""}
-      />
+      /> */}
     </Stack>
   );
 }

@@ -291,14 +291,15 @@ export default function TimeLineView({
     getReportYears();
   }, [caseDetail, selectedTimeline]);
 
-  // useEffect(() => {
-  //   console.log("selectedTimeline", marks);
-  // }, [marks]);
+  useEffect(() => {
+    console.log("selectedTimeline", marks);
+  }, [marks]);
 
   return (
     <Stack
       justifyContent={"flex-end"}
       sx={{
+        display: marks.length > 1 ? "flex" : "none",
         position: "relative",
         width: "100%",
         height: view == MapViewEnum.mapView ? pxToRem(100) : "auto",

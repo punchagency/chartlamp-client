@@ -69,11 +69,11 @@ export default function AnatomyView({
     };
   }, [images]);
 
-  const getImageDisplay = (index: number) => {
-    const svg: any = images[index]?.svg;
-    const svgDataUrl = `data:image/svg+xml;base64,${btoa(svg)}`;
-    return svgDataUrl;
-  };
+  // const getImageDisplay = (index: number) => {
+  //   const svg: any = images[index]?.svg;
+  //   const svgDataUrl = `data:image/svg+xml;base64,${btoa(svg)}`;
+  //   return svgDataUrl;
+  // };
 
   const getImageUrl = (fileName: string) => {
     const modifiedName = fileName.replace(/\s/g, "+").replace(/\//g, "+");
@@ -85,7 +85,8 @@ export default function AnatomyView({
       alignItems={"flex-end"}
       sx={{
         width: "100%",
-        height: "calc(100vh - 300px)",
+        // height: "calc(100vh - 300px)",
+        flex: 1,
         overflowY: "hidden",
         position: "relative",
         "&::-webkit-scrollbar": {
@@ -107,7 +108,7 @@ export default function AnatomyView({
             position: "relative",
             display: "block",
             width: pxToRem(600),
-            height: "calc(100vh - 320px)",
+            height: "calc(100vh - 350px)",
             borderRadius: pxToRem(16),
           }}
         >
@@ -138,7 +139,7 @@ export default function AnatomyView({
                 position: "relative",
                 display: "block",
                 width: pxToRem(600),
-                height: "calc(100vh - 320px)",
+                height: "calc(100vh - 350px)",
                 borderRadius: pxToRem(16),
                 // background: "red",
               }}

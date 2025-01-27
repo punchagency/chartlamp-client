@@ -12,6 +12,7 @@ export function useCaseDetailsView() {
   const [caseTags, setCaseTags] = useState<caseTags[]>([]);
   const activeYearInViewParam = searchParams.get("activeYearInView");
   const partIdParam = searchParams.get("partId");
+  const icdCodeParam = searchParams.get("icd-code");
   const reportIndexParm = searchParams.get("reportIndex");
   const reportIndex = reportIndexParm ? parseInt(reportIndexParm) : 0;
 
@@ -141,6 +142,7 @@ export function useCaseDetailsView() {
     loading,
     activeYearInViewParam,
     partIdParam,
+    icdCodeParam,
     reportIndex,
     setComments,
     updateReportDetails,

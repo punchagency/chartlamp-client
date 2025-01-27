@@ -188,7 +188,7 @@ export default function FilterDrop({
                   gap: pxToRem(8),
                   position: "absolute",
                   top: "120%",
-                  zIndex: 30,
+                  zIndex: 300,
                   width: "100%",
                   minWidth: "max-content",
                 }}

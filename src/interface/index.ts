@@ -72,17 +72,16 @@ export interface ImageType {
   _id: string;
   fileName: string;
   categoryName: string;
-  __v: number;
-  svg: string;
-  score: number;
 }
 
 export interface ImageTypeTwo extends ImageType {
   reportId: string;
   icdCode: string;
+  // classificationId: string;
 }
 
 export interface DiseaseReport {
+  _id: string;
   images: ImageType[];
   bodyParts: string;
   description: string;

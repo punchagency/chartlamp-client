@@ -20,7 +20,7 @@ export default function MedicalTab({
   return (
     <Stack
       sx={{
-        px: pxToRem(32),
+        px: pxToRem(16),
         pt: pxToRem(24),
         pb: pxToRem(24),
         gap: pxToRem(32),

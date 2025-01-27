@@ -110,7 +110,16 @@ export default function NotesView({
         height: "100%",
       }}
     >
-      <TopNav />
+      <Stack
+        sx={{
+          position: "sticky",
+          top: 0,
+          background: NEUTRAL[0],
+          zIndex: 100,
+        }}
+      >
+        <TopNav />
+      </Stack>
       <Stack
         flex={1}
         bgcolor={NEUTRAL[0]}

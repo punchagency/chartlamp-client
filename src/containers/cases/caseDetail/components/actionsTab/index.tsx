@@ -22,6 +22,7 @@ import {
 import { tagsFilter } from "../medicalHistory/constants";
 import { GridIcon } from "../svg/GridIcon";
 import { ListIcon } from "../svg/ListIcon";
+import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
 
 export enum TableView {
   cases = "cases",
@@ -147,6 +148,10 @@ export default function ActionsTab({
                 <ShareIcon />
               </IconContainer>
             )}
+
+            {/* <IconContainer tooltip="Pin Case" onClick={handleShareClick}>
+              <PushPinOutlinedIcon />
+            </IconContainer> */}
 
             <Button
               onClick={() => notesModalVar(!notesModal)}

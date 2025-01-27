@@ -35,7 +35,7 @@ export default function TopNav() {
   };
 
   return (
-    <Stack padding={pxToRem(14)}>
+    <Stack padding={pxToRem(14)} backgroundColor={NEUTRAL[0]}>
       <Grid container direction={"row"} alignItems={"center"}>
         <Grid item xs={12} md={12}>
           <Grid container alignItems={"center"} gap={pxToRem(48)}>

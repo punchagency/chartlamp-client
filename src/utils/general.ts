@@ -165,6 +165,7 @@ export const extractImagesFromReport = (
       });
     }
   });
+  console.log("extractImagesFromReport", images);
   return images;
 };
 
