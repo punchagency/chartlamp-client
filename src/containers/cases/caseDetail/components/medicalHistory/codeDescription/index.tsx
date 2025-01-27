@@ -257,7 +257,13 @@ export default function IcdCodeDescription({
               </Typography>
               <Stack gap={2}>
                 {Object.entries(mappingByCategory).map(([key, value]) => (
-                  <Stack key={key} gap={1}>
+                  <Stack
+                    key={key}
+                    gap={1}
+                    sx={{
+                      display: value && value.length > 0 ? "flex" : "none",
+                    }}
+                  >
                     <Stack
                       direction="row"
                       alignItems="center"
@@ -328,7 +334,7 @@ export default function IcdCodeDescription({
                 selectedCategory={selectedCategory}
                 onPartSelect={(path: string) => router.push(path)}
               />
-            <TimeLineView view={view} caseDetail={caseDetail} />
+              <TimeLineView view={view} caseDetail={caseDetail} />
             </Stack>
           </Stack>
         </>
