@@ -51,7 +51,6 @@ export default function Maintenance({
     }
   };
 
-
   const handleSearch = (val: string) => {
     setSearchVal(val);
   };
@@ -126,18 +125,31 @@ export default function Maintenance({
       sx={{
         boxShadow: { xs: "none", sm: "0px 0px 10px rgba(5, 113, 112, 0.04)" },
         borderRadius: { xs: 0, sm: pxToRem(24) },
-        height: "100%",
+        overflowY: "scroll",
+        // hide scroll bar
+        "&::-webkit-scrollbar": {
+          display: "none",
+        },
       }}
     >
-      <TopNav />
-      <ActionsTab
-        userName={plaintiff || ""}
-        caseNumber={caseNumber || ""}
-        profilePicture={""}
-        // profilePicture={user?.profilePicture || ""}
-        handleSearch={handleSearch}
-        handleUpload={() => setOpenUpload(true)}
-      />
+      <Stack
+        sx={{
+          position: "sticky",
+          top: 0,
+          background: NEUTRAL[0],
+          zIndex: 100,
+        }}
+      >
+        <TopNav />
+        <ActionsTab
+          userName={plaintiff || ""}
+          caseNumber={caseNumber || ""}
+          profilePicture={""}
+          // profilePicture={user?.profilePicture || ""}
+          handleSearch={handleSearch}
+          handleUpload={() => setOpenUpload(true)}
+        />
+      </Stack>
       {componentData}
       <AppDialog open={openUpload} onClose={() => setOpenUpload(false)}>
         <UploadcaseModal

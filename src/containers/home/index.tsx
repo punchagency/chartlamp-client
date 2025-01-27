@@ -11,6 +11,7 @@ import RecentlyJoined from "./components/RecentlyJoined";
 import { ArchiveIcon } from "./components/svg/ArchiveIcon";
 import { CaseIcon } from "./components/svg/CaseIcon";
 import { useDashboard } from "./hooks";
+import FavoriteCases from "./components/Favorites";
 
 const CaseCardData = [
   {
@@ -75,7 +76,7 @@ export default function HomePageContainer() {
               />
             </Grid>
             <Grid item xs={12} md={recentlyJoined.length ? 8 : 12}>
-              <MostVisitedCase mostVisitedCases={mostVisitedCases} />
+              <FavoriteCases favoriteCases={mostVisitedCases} />
             </Grid>
             {Boolean(recentlyJoined.length) && (
               <Grid item xs={12} md={4}>

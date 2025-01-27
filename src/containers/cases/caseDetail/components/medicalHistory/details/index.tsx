@@ -35,11 +35,11 @@ export default function Details({
   tagsArray,
 }: MapViewProps) {
   const router = useRouter();
-  // console.log("imageList-Details", imageList);
+  console.log("imageList-Details", imageList);
   const showFilter = useReactiveVar(showFilterVar);
   return (
     <>
-      <Stack>
+      <Stack flex={1}>
         <Filter
           showFilter={showFilter}
           bodyParts={bodyParts}
@@ -49,7 +49,7 @@ export default function Details({
         />
         {caseDetail && caseDetail.reports && caseDetail.reports.length > 0 && (
           <>
-            <Grid container>
+            <Grid container flex={1}>
               <Grid item xs={12} sm={6}>
                 <HumanAnatomyView
                   imageList={imageList}

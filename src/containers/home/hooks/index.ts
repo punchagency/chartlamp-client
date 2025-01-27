@@ -36,6 +36,13 @@ export function useDashboard() {
     } catch (error) {}
   };
 
+  const getFavoriteCasesByUser = async () => {
+    try {
+      const response = await axiosInstance.get(endpoints.case.favoriteCases);
+      setMostVisitedCases(response.data);
+    } catch (error) {}
+  };
+
   const getRecentlyJoinedUsers = async () => {
     try {
       const response = await axiosInstance.get(endpoints.user.recentlyJoined);
@@ -62,7 +69,7 @@ export function useDashboard() {
         await Promise.all([
           getUserStats(),
           getClaimRelatedReports(),
-          getMostVisitedCasesByUser(),
+          getFavoriteCasesByUser(),
           getRecentlyJoinedUsers(),
           getLastViewedCaseByUser(),
         ]);

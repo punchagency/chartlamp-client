@@ -59,6 +59,7 @@ export const endpoints = {
     userCases: "/case/user",
     userStats: "/case/stats",
     mostVisited: "/case/most-visited",
+    favoriteCases: "/case/favorites",
     lastViewed: "/case/last-viewed",
     detail: "/case",
     document: "/case/document",

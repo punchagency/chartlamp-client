@@ -40,6 +40,7 @@ export default function DetailsView({ caseDetail }: MapViewProps) {
     caseTags,
     activeYearInViewParam,
     partIdParam,
+    icdCodeParam,
     reportIndex,
     getCaseTags,
     getStreamlinedDiseaseName,
@@ -76,14 +77,19 @@ export default function DetailsView({ caseDetail }: MapViewProps) {
     try {
       if (!defaultDiseaseName) return;
       setDiseaseName(defaultDiseaseName);
-      if (!partIdParam) return;
+      // if (!partIdParam) return;
       if (!Boolean(defaultDiseaseName.split(",").length > 1)) return;
       const diseaseClass = caseDetail?.report.classification.find((item) => {
-        if (!item.images) return false;
-        const selectedImage = item.images.find(
-          (imgItem) => imgItem._id === partIdParam
-        );
-        if (selectedImage) return true;
+        if (partIdParam) {
+          if (!item.images) return false;
+          const selectedImage = item.images.find(
+            (imgItem) => imgItem._id === partIdParam
+          );
+          if (selectedImage) return true;
+        }
+        if (icdCodeParam) {
+          if (item.icdCode === icdCodeParam) return true;
+        }
         return false;
       });
       if (!diseaseClass) return;
@@ -106,7 +112,7 @@ export default function DetailsView({ caseDetail }: MapViewProps) {
       });
       if (nameOfDiseaseByIcdCode) {
         getName(selectedIcdCode, nameOfDiseaseByIcdCode);
-        refetchCaseDetailsWithoutLoadingVar(true);
+        // refetchCaseDetailsWithoutLoadingVar(true);
       } else setDiseaseName(defaultDiseaseName);
     } catch {
       setDiseaseName(defaultDiseaseName);
@@ -170,7 +176,7 @@ export default function DetailsView({ caseDetail }: MapViewProps) {
         alignItems={"center"}
         justifyContent={"space-between"}
         sx={{
-          px: { xs: pxToRem(16), sm: pxToRem(32) },
+          px: pxToRem(16),
           py: pxToRem(24),
           pb: pxToRem(8),
           maxHeight: { sm: pxToRem(86) },
@@ -204,7 +210,7 @@ export default function DetailsView({ caseDetail }: MapViewProps) {
       <Stack sx={{}}>
         <Stack
           sx={{
-            px: { xs: pxToRem(16), sm: pxToRem(32) },
+            px: pxToRem(16),
             py: pxToRem(8),
           }}
         >
@@ -218,7 +224,7 @@ export default function DetailsView({ caseDetail }: MapViewProps) {
         </Stack>
         <Stack
           sx={{
-            px: { xs: pxToRem(16), sm: pxToRem(32) },
+            px: pxToRem(16),
             py: pxToRem(8),
             gap: pxToRem(8),
           }}

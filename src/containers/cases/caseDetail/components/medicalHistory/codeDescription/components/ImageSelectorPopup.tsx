@@ -78,7 +78,7 @@ export default function ImageSelectorPopup({
                       }}
                       onClick={() =>
                         onPartSelect(
-                          `/dashboard/case/${caseId}/${CaseDetailEnum.medicalHistory}?view=${MapViewEnum.detailsView}&reportId=${part.reportId}&partId=${part._id}&activeYearInView=${activeYearInViewParam}`
+                          `/dashboard/case/${caseId}/${CaseDetailEnum.medicalHistory}?view=${MapViewEnum.detailsView}&reportId=${part.reportId}&partId=${part._id}&activeYearInView=${activeYearInViewParam}&icd-code=${part.icdCode}`
                         )
                       }
                     >

@@ -76,9 +76,10 @@ export default function IcdCodeDescription({
   const [checked, setChecked] = useState(false);
 
   // console.log("IcdCodeDescription", mappingByCategory);
+  // console.log("caseDetail", caseDetail);
 
   return (
-    <Stack>
+    <Stack flex={1}>
       <Filter
         showFilter={showFilter}
         bodyParts={bodyParts}
@@ -93,9 +94,11 @@ export default function IcdCodeDescription({
             sx={{
               alignItems: "center",
               justifyContent: "center",
-              height: "calc(100vh - 112px - 200px)",
+              // height: "calc(100vh - 112px - 200px)",
+              flex: 1,
               position: "relative",
               // pt: pxToRem(41),
+              // background: "red",
             }}
           >
             <Stack
@@ -254,7 +257,13 @@ export default function IcdCodeDescription({
               </Typography>
               <Stack gap={2}>
                 {Object.entries(mappingByCategory).map(([key, value]) => (
-                  <Stack key={key} gap={1}>
+                  <Stack
+                    key={key}
+                    gap={1}
+                    sx={{
+                      display: value && value.length > 0 ? "flex" : "none",
+                    }}
+                  >
                     <Stack
                       direction="row"
                       alignItems="center"
@@ -296,7 +305,7 @@ export default function IcdCodeDescription({
                           }}
                           onClick={() =>
                             router.push(
-                              `/dashboard/case/${caseDetail._id}/${CaseDetailEnum.medicalHistory}?view=${MapViewEnum.detailsView}&reportId=${part.reportId}&partId=${part._id}`
+                              `/dashboard/case/${caseDetail._id}/${CaseDetailEnum.medicalHistory}?view=${MapViewEnum.detailsView}&reportId=${part.reportId}&partId=${part._id}&icd-code=${part.icdCode}&activeYearInView=${activeYearInViewParam}`
                             )
                           }
                         >
@@ -311,9 +320,10 @@ export default function IcdCodeDescription({
             <Stack
               justifyContent="center"
               sx={{
-                height: "calc(100vh - 260px)",
+                // height: "calc(100vh - 260px)",
+                flex: 1,
                 width: "100%",
-                pt: pxToRem(20),
+                // py: pxToRem(40),
               }}
             >
               <AnatomyView
@@ -324,9 +334,9 @@ export default function IcdCodeDescription({
                 selectedCategory={selectedCategory}
                 onPartSelect={(path: string) => router.push(path)}
               />
+              <TimeLineView view={view} caseDetail={caseDetail} />
             </Stack>
           </Stack>
-          <TimeLineView view={view} caseDetail={caseDetail} />
         </>
       )}
     </Stack>

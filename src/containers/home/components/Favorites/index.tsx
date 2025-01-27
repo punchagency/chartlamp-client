@@ -20,7 +20,7 @@ function MostVisitedRow({
     <Stack
       direction={"row"}
       alignItems={"center"}
-      justifyContent={"space-between"}
+      //   justifyContent={"space-between"}
       minHeight={pxToRem(66)}
       sx={{
         p: pxToRem(8),
@@ -31,7 +31,12 @@ function MostVisitedRow({
         },
       }}
     >
-      <Stack gap={pxToRem(6)} direction={"row"} alignItems={"center"}>
+      <Stack
+        gap={pxToRem(6)}
+        direction={"row"}
+        alignItems={"center"}
+        flex={1}
+      >
         <CustomImage
           src={profilePicture || "/images/userHeader.png"}
           wrapperSx={{
@@ -51,7 +56,7 @@ function MostVisitedRow({
           </Typography>
         </Stack>
       </Stack>
-      <Stack gap={pxToRem(4)}>
+      <Stack gap={pxToRem(4)} width={pxToRem(130)}>
         <Typography
           variant="subtitle2"
           fontSize={pxToRem(12)}
@@ -72,10 +77,10 @@ function MostVisitedRow({
   );
 }
 
-export default function MostVisitedCase({
-  mostVisitedCases,
+export default function FavoriteCases({
+  favoriteCases,
 }: {
-  mostVisitedCases: any[];
+  favoriteCases: any[];
 }) {
   return (
     <Stack
@@ -91,11 +96,11 @@ export default function MostVisitedCase({
       <Stack gap={pxToRem(16)}>
         <Stack direction={"row"} minHeight={pxToRem(35)} padding={pxToRem(8)}>
           <Typography variant="h5" color={SECONDARY[500]}>
-            Most Visited Case
+            Favorite Cases
           </Typography>
         </Stack>
         <Stack gap={pxToRem(8)}>
-          {mostVisitedCases?.map((item, index) => (
+          {favoriteCases?.map((item, index) => (
             <MostVisitedRow
               {...item}
               name={item.userDetails.name}
@@ -109,12 +114,12 @@ export default function MostVisitedCase({
                 )
                 .toLocaleString()}
               key={index}
-              isLast={mostVisitedCases.length - 1 === index}
+              isLast={favoriteCases.length - 1 === index}
             />
           ))}
         </Stack>
 
-        {!Boolean(mostVisitedCases?.length) && (
+        {!Boolean(favoriteCases?.length) && (
           <Stack
             sx={{
               width: "100%",

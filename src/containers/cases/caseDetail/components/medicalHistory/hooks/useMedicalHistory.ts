@@ -19,6 +19,7 @@ import {
 import { useReactiveVar } from "@apollo/client";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { MapViewEnum } from "../../../constants";
 import { activeYearInViewVar } from "../../../state";
 import { tagsFilter } from "../constants";
 
@@ -97,8 +98,12 @@ export default function useMedicalHistory({
   };
 
   const handleGetImageList = (reports: ReportsDetailWithBodyPart[]) => {
-    const extractedImages = extractImagesFromReport(reports, filterValues);
-    setImageList(extractedImages);
+    if (!partId && viewParam === MapViewEnum.detailsView) {
+      setImageList([]);
+    } else {
+      const extractedImages = extractImagesFromReport(reports, filterValues);
+      setImageList(extractedImages);
+    }
   };
 
   const handleGetBodyParts = (reports: ReportsDetailWithBodyPart[]) => {
@@ -217,25 +222,38 @@ export default function useMedicalHistory({
   }, [searchVal, filteredReports]);
 
   const mappingByCategory = useMemo(() => {
-    const mapping: { [key: string]: ImageTypeTwo[] } = {};
+    const mapping: { [key: string]: ImageTypeTwo[] } = {
+      others: [],
+    };
     const uniqueFileNames = new Set();
     bodyParts.forEach((part) => {
-      // console.log("mappingByCategory", part);
-      part.images.forEach((image) => {
-        if (uniqueFileNames.has(image.fileName)) return;
-        uniqueFileNames.add(image.fileName);
-        if (mapping[image.categoryName]) {
-          mapping[image.categoryName].push({
-            ...image,
-            icdCode: part.icdCode,
-            reportId: part.reportId,
-          });
-        } else {
-          mapping[image.categoryName] = [
-            { ...image, icdCode: part.icdCode, reportId: part.reportId },
-          ];
-        }
-      });
+      if (part.images.length) {
+        part.images.forEach((image) => {
+          if (uniqueFileNames.has(image.fileName)) return;
+          uniqueFileNames.add(image.fileName);
+          if (mapping[image.categoryName]) {
+            mapping[image.categoryName].push({
+              ...image,
+              icdCode: part.icdCode,
+              reportId: part.reportId,
+            });
+          } else {
+            mapping[image.categoryName] = [
+              { ...image, icdCode: part.icdCode, reportId: part.reportId },
+            ];
+          }
+        });
+      } else {
+        if (uniqueFileNames.has(part.bodyParts)) return;
+        uniqueFileNames.add(part.bodyParts);
+        mapping.others.push({
+          _id: "",
+          fileName: part.bodyParts,
+          categoryName: "",
+          icdCode: part.icdCode,
+          reportId: part.reportId,
+        });
+      }
     });
     // console.log("mapping", mapping);
     return mapping;

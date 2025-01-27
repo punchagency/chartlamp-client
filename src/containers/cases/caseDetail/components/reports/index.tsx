@@ -51,17 +51,31 @@ export default function Report({
       sx={{
         boxShadow: { xs: "none", sm: "0px 0px 10px rgba(5, 113, 112, 0.04)" },
         borderRadius: { xs: 0, sm: pxToRem(24) },
+        overflowY: "scroll",
+        // hide scroll bar
+        "&::-webkit-scrollbar": {
+          display: "none",
+        },
       }}
     >
-      <TopNav />
-      <ActionsTab
-        // profilePicture={user?.profilePicture || ""}
-        profilePicture={""}
-        userName={plaintiff || ""}
-        caseNumber={caseNumber || ""}
-        handleSearch={(val: string) => setSearchVal(val)}
-        handleTagSelect={(val) => setSelectedTag(val)}
-      />
+      <Stack
+        sx={{
+          position: "sticky",
+          top: 0,
+          background: NEUTRAL[0],
+          zIndex: 100,
+        }}
+      >
+        <TopNav />
+        <ActionsTab
+          // profilePicture={user?.profilePicture || ""}
+          profilePicture={""}
+          userName={plaintiff || ""}
+          caseNumber={caseNumber || ""}
+          handleSearch={(val: string) => setSearchVal(val)}
+          handleTagSelect={(val) => setSelectedTag(val)}
+        />
+      </Stack>
       <ReportTable reportData={filteredTagReports} loading={loading} />
     </Stack>
   );
