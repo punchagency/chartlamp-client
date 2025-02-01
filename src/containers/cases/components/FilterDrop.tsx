@@ -30,6 +30,7 @@ export default function FilterDrop({
   search,
   bodyStyle,
   containerStyle,
+  absoluteStyle,
   topStyle,
   hideClose = false,
   handleSelect,
@@ -41,6 +42,7 @@ export default function FilterDrop({
   isCaseClaimStatus?: boolean;
   search?: boolean;
   bodyStyle?: any;
+  absoluteStyle?: any;
   containerStyle?: any;
   topStyle?: any;
   handleSelect: (option: string) => void;
@@ -191,6 +193,7 @@ export default function FilterDrop({
                   zIndex: 300,
                   width: "100%",
                   minWidth: "max-content",
+                  ...absoluteStyle,
                 }}
               >
                 {search && (

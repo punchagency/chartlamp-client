@@ -53,6 +53,7 @@ export const PRIMARY = {
   500: "#08BDBA",
   700: "#057170",
   800: "#034C4A",
+  900: "rgba(2, 38, 37, 1)",
 };
 
 export const SUCCESS = {

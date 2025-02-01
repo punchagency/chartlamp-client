@@ -45,14 +45,17 @@ export enum StatusType {
 export interface MapViewFilter {
   bodyPart: string;
   provider: string;
-  tag: TagsType | "";
+  tag: string[];
+  icdCode?: string;
+  icdCodes?: string[];
+  searchVal?: string;
+  dcs?: string[];
 }
 
 export interface NameOfDiseaseByIcdCode {
   icdCode: string;
   nameOfDisease: string;
 }
-
 
 export interface ReportsDetail {
   icdCodes?: string[];
@@ -77,20 +80,20 @@ export interface ImageType {
 export interface ImageTypeTwo extends ImageType {
   reportId: string;
   icdCode: string;
-  // classificationId: string;
+  classificationId?: string;
 }
 
-export interface DiseaseReport {
-  _id: string;
-  images: ImageType[];
+export interface DiseaseClass {
+  images: ImageType[] | [];
   bodyParts: string;
   description: string;
   reportId: string;
   icdCode: string;
+  _id?: string;
 }
 
 export interface ReportsDetailWithBodyPart extends ReportsDetail {
-  classification: DiseaseReport[];
+  classification: DiseaseClass[];
   icdCodes: string[];
 }
 
@@ -123,6 +126,21 @@ export interface caseTags {
   tagName: string;
 }
 
+export interface CaseDcTagMapping {
+  _id: string;
+  case: string;
+  report: string;
+  caseTag: string;
+  dc?: string;
+  icdCode?: string;
+}
+
+export interface CaseDcTagMappingUnSaved extends Omit<CaseDcTagMapping, "_id"> {
+  categoryName?: string;
+  _id?: string;
+  isRemove?: boolean;
+}
+
 export interface CaseDetail {
   _id: string;
   caseNumber: string;
@@ -141,10 +159,9 @@ export interface CaseDetail {
   documents: DocumentDetail[];
   reports: ReportsDetailWithBodyPart[];
   report: ReportsDetailWithBodyPart;
-  classification: DiseaseReport[];
+  classification: DiseaseClass[];
   tags?: caseTags[];
 }
-
 
 export interface caseStatus {
   caseId: string;

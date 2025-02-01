@@ -1,6 +1,10 @@
 import { BackIcon } from "@/containers/cases/components/svgs/BackIcon";
-import { refetchCaseDetailsWithoutLoadingVar } from "@/containers/cases/state";
-import { CaseDetail, NameOfDiseaseByIcdCode, TagsType } from "@/interface";
+import {
+  CaseDetail,
+  NameOfDiseaseByIcdCode,
+  OptionsType,
+  TagsType,
+} from "@/interface";
 import { customTagModalVar } from "@/state/modal";
 import { NEUTRAL, SECONDARY, pxToRem } from "@/theme";
 import { IconButton, Stack, Typography } from "@mui/material";
@@ -10,12 +14,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CaseDetailEnum, MapViewEnum } from "../../../constants";
 import DiseaseTag from "../../DiseaseTags";
 import { QuestMarkIcon } from "../../svg/QuestMarkIcon";
-import { tagsFilter } from "../constants";
 import BottomTab from "./BottomTab";
 import { useCaseDetailsView } from "./hook";
 
 interface MapViewProps {
-  caseDetail: CaseDetail; // Replace 'any' with the actual type of 'caseData'
+  caseDetail: CaseDetail;
+  tagsArray: OptionsType[] | [];
 }
 
 const CustomToolTip = () => {
@@ -33,10 +37,14 @@ const CustomToolTip = () => {
   );
 };
 
-export default function DetailsView({ caseDetail }: MapViewProps) {
+export default function DetailsView({ caseDetail, tagsArray }: MapViewProps) {
   const router = useRouter();
   const {
     loading,
+    dcTags,
+    caseIdParam,
+    reportIdParam,
+    refetchTags,
     caseTags,
     activeYearInViewParam,
     partIdParam,
@@ -45,6 +53,7 @@ export default function DetailsView({ caseDetail }: MapViewProps) {
     getCaseTags,
     getStreamlinedDiseaseName,
     updateReportDetails,
+    getDcTagMapping,
   } = useCaseDetailsView();
   const [diseaseName, setDiseaseName] = useState("");
 
@@ -61,16 +70,15 @@ export default function DetailsView({ caseDetail }: MapViewProps) {
     }
   }, [caseDetail]);
 
-  const tagsArray = useMemo(() => {
-    if (!caseTags) return [];
-    const labelValue = caseTags.map((tag) => {
-      return {
-        label: tag.tagName,
-        value: tag._id.toString() as any,
-      };
-    });
-    return tagsFilter.slice(0, 2).concat(labelValue).concat(tagsFilter[2]);
-  }, [caseDetail, caseTags]);
+  const preferredClassification = useMemo(() => {
+    const reportClassifications = caseDetail?.report?.classification;
+    const preferredClassification = reportClassifications.find(
+      (item) =>
+        item.images.find((img) => img._id === partIdParam) ||
+        item.icdCode === icdCodeParam
+    );
+    return preferredClassification;
+  }, [caseDetail, partIdParam, icdCodeParam]);
 
   const handlePartFilter = useCallback(async () => {
     const defaultDiseaseName = caseDetail?.report?.nameOfDisease;
@@ -96,7 +104,7 @@ export default function DetailsView({ caseDetail }: MapViewProps) {
 
       const selectedIcdCode = diseaseClass.icdCode;
       let nameOfDiseaseByIcdCode = caseDetail?.report?.nameOfDiseaseByIcdCode;
-      console.log("nameOfDiseaseByIcdCode", nameOfDiseaseByIcdCode);
+      // console.log("nameOfDiseaseByIcdCode", nameOfDiseaseByIcdCode);
       if (nameOfDiseaseByIcdCode) {
         const name = getName(selectedIcdCode, nameOfDiseaseByIcdCode);
         if (name) return;
@@ -124,12 +132,20 @@ export default function DetailsView({ caseDetail }: MapViewProps) {
   }, [partIdParam, caseDetail]);
 
   useEffect(() => {
-    (async () => {
-      await getCaseTags({
-        caseId: caseDetail._id,
+    if (
+      caseIdParam &&
+      reportIdParam &&
+      refetchTags &&
+      preferredClassification
+    ) {
+      getDcTagMapping({
+        dc: preferredClassification?._id,
+        icdCode: preferredClassification.icdCode,
+        reportId: reportIdParam,
+        caseId: caseIdParam as string,
       });
-    })();
-  }, [caseDetail]);
+    }
+  }, [caseIdParam, reportIdParam, refetchTags, preferredClassification]);
 
   const getName = (
     selectedIcdCode: string,
@@ -144,6 +160,7 @@ export default function DetailsView({ caseDetail }: MapViewProps) {
     } else return null;
   };
 
+  //@ts-ignore
   const handleMouseDown = (e: React.MouseEvent) => {
     if (containerRef.current) {
       setIsDragging(true);
@@ -277,25 +294,37 @@ export default function DetailsView({ caseDetail }: MapViewProps) {
               onMouseUp={handleMouseUpOrLeave}
               onMouseLeave={handleMouseUpOrLeave}
             >
-              {tagsArray.map((tag, index) => (
-                <DiseaseTag
-                  tag={tag}
-                  key={index}
-                  reportIndex={reportIndex}
-                  handleTagSelect={(isRemove: boolean) => {
-                    if (tag.value === TagsType.CUSTOM_TAG) {
-                      customTagModalVar(true);
-                    } else {
-                      updateReportDetails({
-                        caseId: caseDetail._id,
-                        reportId: caseDetail.report._id,
-                        data: { tags: [tag.value], isRemove },
-                      });
-                    }
-                  }}
-                  savedTags={caseDetail?.report?.tags}
-                />
-              ))}
+              {Boolean(tagsArray.length) &&
+                tagsArray.map((tag, index) => (
+                  <DiseaseTag
+                    tag={tag}
+                    key={index}
+                    reportIndex={reportIndex}
+                    handleTagSelect={(isRemove: boolean) => {
+                      if (tag.value === TagsType.CUSTOM_TAG) {
+                        customTagModalVar(true);
+                      } else {
+                        if (preferredClassification) {
+                          updateReportDetails({
+                            caseId: caseDetail._id,
+                            reportId: reportIdParam as string,
+                            data: {
+                              caseTagId: tag.value,
+                              dc: preferredClassification?._id ?? null,
+                              icdCode: !preferredClassification?._id
+                                ? icdCodeParam
+                                : null,
+                              isRemove,
+                            },
+                          });
+                        } else {
+                          console.log("No preferred classification found");
+                        }
+                      }
+                    }}
+                    savedTags={dcTags}
+                  />
+                ))}
             </Stack>
           </Stack>
         </Stack>

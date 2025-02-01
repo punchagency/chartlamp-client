@@ -86,7 +86,7 @@ export default function CaseDetailPageContainer() {
       case CaseDetailEnum.reports:
         return (
           <Report
-            reports={caseData?.reports}
+            reports={caseDetail?.reports}
             user={caseData?.user}
             plaintiff={caseData?.plaintiff}
             caseNumber={caseData?.caseNumber}

@@ -35,10 +35,8 @@ export function MapViewTimeLine({
   marks: any[];
   hide: boolean;
   activeYearInViewParam: number | null;
-  handleReloadPathWithParams: (params: { [key: string]: any }[]) => void;
+  handleReloadPathWithParams: (params: { [key: string]: any }) => void;
 }) {
-  const router = useRouter();
-  const pathname = usePathname();
   const [sliderValue, setSliderValue] = useState(
     marks.length ? marks[0].value : 0
   );
@@ -64,17 +62,17 @@ export function MapViewTimeLine({
   };
 
   const handleSelectViewAll = () => {
-    if (activeYearInViewVar()) {
-      activeYearInViewVar(0);
+    if (activeYearInViewParam) {
+      handleReloadPathWithParams({ activeYearInView: 0 });
     } else {
       if (marks.length) {
-        activeYearInViewVar(marks[0].value);
+        handleReloadPathWithParams({ activeYearInView: marks[0].value });
       }
     }
   };
 
   useEffect(() => {
-    handleReloadPathWithParams([{ activeYearInView: sliderValue }]);
+    handleReloadPathWithParams({ activeYearInView: sliderValue });
   }, [sliderValue]);
 
   useEffect(() => {
@@ -143,7 +141,7 @@ export function MapViewTimeLine({
       <Typography
         variant="subtitle1"
         color={SECONDARY[400]}
-        className={activeYearInViewVar() === 0 ? "active" : ""}
+        className={activeYearInViewParam === 0 ? "active" : ""}
         sx={{
           cursor: "pointer",
           borderRadius: pxToRem(8),
@@ -168,7 +166,7 @@ export function DetailViewTimeLine({
   handleReloadPathWithParams,
 }: {
   caseDetail: CaseDetail;
-  handleReloadPathWithParams: (params: { [key: string]: any }[]) => void;
+  handleReloadPathWithParams: (params: { [key: string]: any }) => void;
 }) {
   const searchParams = useSearchParams();
   const reportIndexParm = searchParams.get("reportIndex");
@@ -176,19 +174,25 @@ export function DetailViewTimeLine({
 
   function handlePrev() {
     if (reportIndex > 0) {
-      handleReloadPathWithParams([{ reportIndex: reportIndex - 1 }]);
+      handleReloadPathWithParams({
+        reportIndex: reportIndex - 1,
+        reportId: caseDetail.reports[reportIndex - 1]._id,
+      });
     }
   }
 
   function handleNext() {
     if (reportIndex < caseDetail.reports.length - 1) {
-      handleReloadPathWithParams([{ reportIndex: reportIndex + 1 }]);
+      handleReloadPathWithParams({
+        reportIndex: reportIndex + 1,
+        reportId: caseDetail.reports[reportIndex + 1]._id,
+      });
     }
   }
 
   useEffect(() => {
     if (reportIndex + 1 > caseDetail.reports.length && reportIndex) {
-      handleReloadPathWithParams([{ reportIndex: 0 }]);
+      handleReloadPathWithParams({ reportIndex: 0 });
     }
   }, [caseDetail]);
 
@@ -202,6 +206,8 @@ export function DetailViewTimeLine({
         height: pxToRem(72),
         padding: pxToRem(16),
         borderTop: `1px solid rgba(241, 243, 243, 1)`,
+        postion: "sticky",
+        bottom: 0,
       }}
     >
       {caseDetail.report?.dateOfClaim && (
@@ -276,11 +282,10 @@ export default function TimeLineView({
     showTimelIneCalenderVar(false);
   };
 
-  const handleReloadPathWithParams = (params: { [key: string]: any }[]) => {
+  const handleReloadPathWithParams = (params: { [key: string]: any }) => {
     const searchParamsInner = new URLSearchParams(searchParams.toString());
 
-    params.forEach((param) => {
-      const [key, value] = Object.entries(param)[0];
+    Object.entries(params).forEach(([key, value]) => {
       searchParamsInner.set(key, value);
     });
 
@@ -292,7 +297,7 @@ export default function TimeLineView({
   }, [caseDetail, selectedTimeline]);
 
   useEffect(() => {
-    console.log("selectedTimeline", marks);
+    // console.log("marks", marks);
   }, [marks]);
 
   return (

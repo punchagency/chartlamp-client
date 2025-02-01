@@ -12,9 +12,6 @@ import DetailsView from "./DetailsView";
 interface MapViewProps {
   caseDetail: CaseDetail | null; // Replace 'any' with the actual type of 'caseData'
   view: string;
-  bodyParts: any;
-  providers: any;
-  handleSelect: any;
   imageList: ImageType[];
   selectedCategory: string;
   handleFilterByCategory: any;
@@ -25,9 +22,6 @@ interface MapViewProps {
 export default function Details({
   caseDetail,
   view,
-  bodyParts,
-  providers,
-  handleSelect,
   imageList,
   selectedCategory,
   handleFilterByCategory,
@@ -35,18 +29,10 @@ export default function Details({
   tagsArray,
 }: MapViewProps) {
   const router = useRouter();
-  console.log("imageList-Details", imageList);
-  const showFilter = useReactiveVar(showFilterVar);
   return (
     <>
       <Stack flex={1}>
-        <Filter
-          showFilter={showFilter}
-          bodyParts={bodyParts}
-          providers={providers}
-          tags={tagsArray}
-          handleSelect={handleSelect}
-        />
+  
         {caseDetail && caseDetail.reports && caseDetail.reports.length > 0 && (
           <>
             <Grid container flex={1}>
@@ -75,10 +61,10 @@ export default function Details({
                   // },
                 }}
               >
-                <DetailsView caseDetail={caseDetail} />
+                <DetailsView caseDetail={caseDetail} tagsArray={tagsArray} />
               </Grid>
             </Grid>
-            <TimeLineView view={view} caseDetail={caseDetail} />
+            {/* <TimeLineView view={view} caseDetail={caseDetail} /> */}
           </>
         )}
         {(!Boolean(caseDetail) ||

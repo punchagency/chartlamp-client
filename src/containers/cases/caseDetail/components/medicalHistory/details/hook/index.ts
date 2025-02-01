@@ -1,22 +1,26 @@
 "use client";
 
-import { refetchCaseDetailsVar } from "@/containers/cases/state";
 import { caseTags } from "@/interface";
 import axiosInstance, { endpoints } from "@/lib/axios";
-import { useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export function useCaseDetailsView() {
   const searchParams = useSearchParams();
+  const params = useParams();
+
   const [comments, setComments] = useState<any[]>([]);
   const [caseTags, setCaseTags] = useState<caseTags[]>([]);
+  const [dcTags, setDcTags] = useState<string[]>([]);
   const activeYearInViewParam = searchParams.get("activeYearInView");
   const partIdParam = searchParams.get("partId");
   const icdCodeParam = searchParams.get("icd-code");
+  const reportIdParam = searchParams.get("reportId");
   const reportIndexParm = searchParams.get("reportIndex");
   const reportIndex = reportIndexParm ? parseInt(reportIndexParm) : 0;
 
   const [loading, setLoading] = useState(true);
+  const [refetchTags, setRefetchTags] = useState(true);
 
   const updateReportDetails = async ({
     caseId,
@@ -29,11 +33,12 @@ export function useCaseDetailsView() {
   }) => {
     try {
       setLoading(true);
+      setRefetchTags(false);
       const response = await axiosInstance.patch(
         `${endpoints.case.reports.updateReport}/${caseId}/reports/${reportId}`,
         data
       );
-      refetchCaseDetailsVar(true);
+      setRefetchTags(true);
     } catch (error) {}
   };
 
@@ -78,6 +83,35 @@ export function useCaseDetailsView() {
         `${endpoints.case.reports.updateReport}/${caseId}/tags`
       );
       setCaseTags(response.data || []);
+    } catch (error) {}
+  };
+
+  const getDcTagMapping = async ({
+    reportId,
+    caseId,
+    icdCode,
+    ...rest
+  }: {
+    reportId: string;
+    caseId: string;
+    icdCode: string;
+    dc?: string;
+  }) => {
+    try {
+      const response = await axiosInstance.post(
+        `${endpoints.case.reports.updateReport}/${caseId}/reports/${reportId}/dc/tags`,
+        {
+          dc: rest.dc ?? null,
+          icdCode: !rest.dc ? icdCode : null,
+        }
+      );
+      const savedDcTags = response.data || [];
+      if (!savedDcTags.length) {
+        setDcTags([]);
+      } else {
+        const dcTags = savedDcTags.map((tag: any) => tag.caseTag);
+        setDcTags(dcTags);
+      }
     } catch (error) {}
   };
 
@@ -137,6 +171,10 @@ export function useCaseDetailsView() {
   }, [reportIndex]);
 
   return {
+    dcTags,
+    refetchTags,
+    reportIdParam,
+    caseIdParam: params.id,
     comments,
     caseTags,
     loading,
@@ -151,5 +189,6 @@ export function useCaseDetailsView() {
     getStreamlinedDiseaseName,
     updateComment,
     getCaseTags,
+    getDcTagMapping,
   };
 }

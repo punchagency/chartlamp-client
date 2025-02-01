@@ -37,7 +37,6 @@ export default function UseNotes({ caseNotes }: { caseNotes: CaseNote[] }) {
   );
 
   const rows = useMemo(() => {
-    console.log("optimisticCaseNotes", optimisticCaseNotes);
     if (!optimisticCaseNotes) return [];
     if (!optimisticCaseNotes.length) return [];
     return optimisticCaseNotes.map((item) => {
@@ -162,7 +161,6 @@ export default function UseNotes({ caseNotes }: { caseNotes: CaseNote[] }) {
   };
 
   const handleEditNoteOpen = (note: NoteCellData) => {
-    console.log("handleEditNoteOpen", note);
     setSelectedCell(note);
     setOpenEditModal(true);
   };
