@@ -271,7 +271,7 @@ export default function DiseaseClassificationListView({
                   </Stack>
 
                   {value.map((part: ImageTypeTwo, index: number) => (
-                    <Stack>
+                    <Stack key={index}>
                       {(() => {
                         const checked = isChecked({
                           reportId: part.reportId,
@@ -283,7 +283,7 @@ export default function DiseaseClassificationListView({
                           dc: part?.classificationId,
                           icdCode: part.icdCode,
                         });
-                        console.log("DcTags", dcTags);
+                        // console.log("DcTags", dcTags);
                         return (
                           <Stack
                             key={index}
