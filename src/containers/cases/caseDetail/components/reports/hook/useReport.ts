@@ -2,6 +2,7 @@ import {
   CaseDcTagMapping,
   MapViewFilter,
   ReportsDetailWithBodyPart,
+  ReportsFilter,
 } from "@/interface";
 import axiosInstance, { endpoints } from "@/lib/axios";
 import { filterReportsByDcForReporting } from "@/utils/general";
@@ -18,13 +19,12 @@ export default function useReport({
   const [filteredReports, setFilteredReports] = useState<
     ReportsDetailWithBodyPart[]
   >(reports.slice() || []);
-  const [filterValues, setFilterValues] = useState<MapViewFilter>({
-    bodyPart: "",
+  const [filterValues, setFilterValues] = useState<ReportsFilter>({
     tag: [],
-    provider: "",
     dcs: [],
     icdCodes: [],
     searchVal: "",
+    isFiltered: false
   });
 
   const debounced = useDebouncedCallback((value: string) => {
@@ -53,6 +53,7 @@ export default function useReport({
             [fieldName]: reportIds,
             dcs,
             icdCodes,
+            isFiltered: true,
           });
         });
       } else {
@@ -61,6 +62,7 @@ export default function useReport({
           [fieldName]: [],
           dcs: [],
           icdCodes: [],
+          isFiltered: false,
         });
       }
     } else {
@@ -70,6 +72,7 @@ export default function useReport({
         setFilterValues({
           ...filterValues,
           [fieldName]: selectedVal,
+          isFiltered: true
         });
       }
     }

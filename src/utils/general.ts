@@ -3,6 +3,7 @@ import {
   ImageType,
   MapViewFilter,
   ReportsDetailWithBodyPart,
+  ReportsFilter,
 } from "@/interface";
 
 export const fQueryParams = (filter?: Record<string, any>) => {
@@ -251,7 +252,7 @@ export const extractBodyPartsFromReport = (
 
     return report.classification
       .filter((classification) => {
-        if(!classification?._id) return true;
+        if (!classification?._id) return true;
         if (!classification.bodyParts) return false;
         if (filter.dcs && filter.dcs.length)
           return filter.dcs.includes(classification._id);
@@ -265,13 +266,14 @@ export const extractBodyPartsFromReport = (
 
 export const filterReportsByDcForReporting = (
   reports: ReportsDetailWithBodyPart[],
-  filter: MapViewFilter
+  filter: ReportsFilter
 ): ReportsDetailWithBodyPart[] => {
-  const { tag, searchVal, dcs, icdCodes } = filter;
+  const { tag, searchVal, dcs, icdCodes, isFiltered } = filter;
 
-  if (!tag?.length && !dcs?.length && !icdCodes?.length && !searchVal)
-    return reports;
-
+  if (!tag?.length && !dcs?.length && !icdCodes?.length && !searchVal) {
+    if (!isFiltered) return reports;
+    return [];
+  }
   const normalizedSearchVal = searchVal?.toLowerCase();
 
   return reports.flatMap((report) => {

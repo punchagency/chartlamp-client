@@ -52,6 +52,14 @@ export interface MapViewFilter {
   dcs?: string[];
 }
 
+export interface ReportsFilter {
+  tag: string[];
+  icdCodes: string[];
+  searchVal: string;
+  dcs: string[];
+  isFiltered: boolean;
+}
+
 export interface NameOfDiseaseByIcdCode {
   icdCode: string;
   nameOfDisease: string;
