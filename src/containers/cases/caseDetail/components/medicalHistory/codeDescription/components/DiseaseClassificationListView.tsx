@@ -7,8 +7,28 @@ import {
   OptionsType,
 } from "@/interface";
 import { NEUTRAL, PRIMARY, SECONDARY, pxToRem } from "@/theme";
-import { IconButton, Stack, Typography } from "@mui/material";
-import { useCallback } from "react";
+import { IconButton, Stack, Tooltip, Typography } from "@mui/material";
+import { useCallback, useState } from "react";
+
+const CustomToolTip = ({ dcTags }: any) => {
+  return (
+    <Stack>
+      {dcTags.map((tag: any, index: any) => (
+        <Typography
+          key={index}
+          variant="subtitle2"
+          color={"rgba(255, 255, 255, 1)"}
+          sx={{
+            px: pxToRem(12),
+            py: pxToRem(8),
+          }}
+        >
+          {tag.tagName}
+        </Typography>
+      ))}
+    </Stack>
+  );
+};
 
 export default function DiseaseClassificationListView({
   tagsArray,
@@ -51,8 +71,8 @@ export default function DiseaseClassificationListView({
   handleAddCaseTag: (newCaseTags: CaseDcTagMappingUnSaved[]) => void;
   handleIcdCodeClick: (part: ImageTypeTwo) => void;
 }) {
-  //   console.log("mappingByCategory", mappingByCategory);
-  //   console.log("caseDcTags", caseDcTags);
+  const [isShow, setIsShow] = useState("");
+
   const isChecked = useCallback(
     ({
       reportId,
@@ -70,6 +90,38 @@ export default function DiseaseClassificationListView({
           item.caseTag === selectedTag &&
           !item.isRemove
       );
+    },
+    [caseDcTags, selectedTag]
+  );
+
+  const getDcTags = useCallback(
+    ({
+      reportId,
+      dc,
+      icdCode,
+    }: {
+      reportId: string;
+      icdCode?: string;
+      dc?: string;
+    }) => {
+      const filteredTags = caseDcTags.flatMap((item) => {
+        if (
+          (item?.dc === dc || item?.icdCode === icdCode) &&
+          item.report === reportId &&
+          !item.isRemove
+        ) {
+          return [
+            {
+              ...item,
+              tagName: tagsArray.find((tag) => tag.value === item.caseTag)
+                ?.label,
+            },
+          ];
+        } else {
+          return [];
+        }
+      });
+      return filteredTags;
     },
     [caseDcTags, selectedTag]
   );
@@ -219,64 +271,172 @@ export default function DiseaseClassificationListView({
                   </Stack>
 
                   {value.map((part: ImageTypeTwo, index: number) => (
-                    <Stack
-                      key={index}
-                      px={pxToRem(16)}
-                      py={pxToRem(9.5)}
-                      direction={"row"}
-                      alignItems={"center"}
-                      sx={{
-                        //   bgcolor: 'red',
-                        cursor: "pointer",
-                        "&:hover": {
-                          bgcolor: PRIMARY[50],
-                        },
-                      }}
-                      onClick={() => handleIcdCodeClick(part)}
-                    >
-                      <Stack
-                        direction={"row"}
-                        alignItems={"center"}
-                        gap={pxToRem(8)}
-                      >
-                        {selectedTag && (
-                          <Stack>
-                            {(() => {
-                              const checked = isChecked({
-                                reportId: part.reportId,
-                                dc: part?.classificationId,
-                                icdCode: part.icdCode,
-                              });
-                              return (
-                                <IconButton
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleAddCaseTag([
-                                      {
-                                        dc: part?.classificationId,
-                                        icdCode: part.icdCode,
-                                        report: part.reportId,
-                                        caseTag: selectedTag,
-                                        case: caseId,
-                                        isRemove: checked,
-                                      },
-                                    ]);
-                                  }}
+                    <Stack>
+                      {(() => {
+                        const checked = isChecked({
+                          reportId: part.reportId,
+                          dc: part?.classificationId,
+                          icdCode: part.icdCode,
+                        });
+                        const dcTags = getDcTags({
+                          reportId: part.reportId,
+                          dc: part?.classificationId,
+                          icdCode: part.icdCode,
+                        });
+                        console.log("DcTags", dcTags);
+                        return (
+                          <Stack
+                            key={index}
+                            px={pxToRem(16)}
+                            py={pxToRem(9.5)}
+                            direction={"row"}
+                            alignItems={"center"}
+                            justifyContent={"space-between"}
+                            sx={{
+                              // position: "relative",
+                              cursor: "pointer",
+                              "&:hover": {
+                                bgcolor: PRIMARY[50],
+                              },
+                            }}
+                            onClick={() => handleIcdCodeClick(part)}
+                          >
+                            <Stack
+                              direction={"row"}
+                              alignItems={"center"}
+                              gap={pxToRem(8)}
+                            >
+                              {selectedTag && (
+                                <Stack>
+                                  <IconButton
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleAddCaseTag([
+                                        {
+                                          dc: part?.classificationId,
+                                          icdCode: part.icdCode,
+                                          report: part.reportId,
+                                          caseTag: selectedTag,
+                                          case: caseId,
+                                          isRemove: checked,
+                                        },
+                                      ]);
+                                    }}
+                                  >
+                                    <AppCheckbox isChecked={checked} />
+                                  </IconButton>
+                                </Stack>
+                              )}
+                              <Typography
+                                variant={"body1"}
+                                color={SECONDARY[400]}
+                                textTransform={"capitalize"}
+                              >
+                                {part.icdCode}-{part.fileName}
+                              </Typography>
+                            </Stack>
+                            {Boolean(dcTags.length) && (
+                              <Stack>
+                                <Tooltip
+                                  title={<CustomToolTip dcTags={dcTags} />}
+                                  placement="top"
+                                  arrow
                                 >
-                                  <AppCheckbox isChecked={checked} />
-                                </IconButton>
-                              );
-                            })()}
+                                  <Stack
+                                    direction={"row"}
+                                    alignItems={"center"}
+                                    sx={{
+                                      height: pxToRem(20),
+                                      width: pxToRem(56),
+                                      p: pxToRem(8),
+                                      pr: pxToRem(3),
+                                      gap: pxToRem(4),
+                                      borderRadius: pxToRem(50),
+                                      bgcolor: PRIMARY[800],
+                                      cursor: "pointer",
+                                    }}
+                                  >
+                                    <Typography
+                                      variant={"caption"}
+                                      textTransform={"capitalize"}
+                                      color={"white"}
+                                    >
+                                      Tags
+                                    </Typography>
+
+                                    <Stack
+                                      alignItems={"center"}
+                                      justifyContent={"center"}
+                                      sx={{
+                                        height: pxToRem(13),
+                                        width: pxToRem(13),
+                                        p: pxToRem(5.2),
+                                        borderRadius: "50%",
+                                        bgcolor: PRIMARY[700],
+                                        color: "white",
+                                      }}
+                                    >
+                                      <Typography
+                                        variant={"caption"}
+                                        textTransform={"capitalize"}
+                                        color={"white"}
+                                      >
+                                        ?
+                                      </Typography>
+                                    </Stack>
+                                  </Stack>
+                                </Tooltip>
+                                {/* {isShow.toLowerCase() ===
+                                  part.icdCode.toLowerCase() && (
+                                  <Stack
+                                    sx={{
+                                      background: NEUTRAL[0],
+                                      boxShadow:
+                                        "0px 0px 20px rgba(23, 26, 28, 0.08)",
+                                      borderRadius: pxToRem(16),
+                                      display: "flex",
+                                      flexDirection: "column",
+                                      alignItems: "flex-start",
+                                      padding: pxToRem(8),
+                                      position: "absolute",
+                                      top: pxToRem(21),
+                                      right: pxToRem(1),
+                                      zIndex: 10,
+                                      minWidth: "max-content",
+                                      cursor: "default",
+                                    }}
+                                  >
+                                    {dcTags.map((tag, index) => (
+                                      <Box
+                                        key={index}
+                                        sx={{
+                                          display: "flex",
+                                          flexDirection: "row",
+                                          justifyContent: "flex-start",
+                                          alignItems: "center",
+                                          padding: pxToRem(12),
+                                          height: pxToRem(41),
+                                          borderRadius: pxToRem(8),
+                                          color: SECONDARY[300],
+                                        }}
+                                      >
+                                        <Typography
+                                          variant="subtitle1"
+                                          color="inherit"
+                                          textTransform={"capitalize"}
+                                          minWidth={"max-content"}
+                                        >
+                                          {tag.tagName}
+                                        </Typography>
+                                      </Box>
+                                    ))}
+                                  </Stack>
+                                )} */}
+                              </Stack>
+                            )}
                           </Stack>
-                        )}
-                        <Typography
-                          variant={"body1"}
-                          color={SECONDARY[400]}
-                          textTransform={"capitalize"}
-                        >
-                          {part.icdCode}-{part.fileName}
-                        </Typography>
-                      </Stack>
+                        );
+                      })()}
                     </Stack>
                   ))}
                 </Stack>
