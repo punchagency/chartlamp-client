@@ -22,7 +22,8 @@ import {
 import { tagsFilter } from "../medicalHistory/constants";
 import { GridIcon } from "../svg/GridIcon";
 import { ListIcon } from "../svg/ListIcon";
-import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
+import PushPinOutlinedIcon from "@mui/icons-material/PushPinOutlined";
+import { OptionsType } from "@/interface";
 
 export enum TableView {
   cases = "cases",
@@ -40,6 +41,7 @@ export default function ActionsTab({
   userName,
   profilePicture,
   caseNumber,
+  tagsArray,
   handleSearch,
   handleUpload,
   handleTagSelect,
@@ -47,6 +49,7 @@ export default function ActionsTab({
   userName: string;
   profilePicture: string;
   caseNumber: string;
+  tagsArray?: OptionsType[];
   handleSearch: (val: string) => void;
   handleTagSelect?: (val: string) => void;
   handleUpload?: () => void;
@@ -191,15 +194,20 @@ export default function ActionsTab({
                 }}
               />
             )}
-            {tab === CaseDetailEnum.reports && (
-              <FilterDrop
-                title="Tags"
-                options={tagsFilter}
-                handleSelect={(option) =>
-                  handleTagSelect && handleTagSelect(option)
-                }
-              />
-            )}
+            {tab === CaseDetailEnum.reports &&
+              tagsArray &&
+              tagsArray.length && (
+                <FilterDrop
+                  title="Tags"
+                  options={tagsArray.slice(0, tagsArray.length - 1)}
+                  handleSelect={(option) =>
+                    handleTagSelect && handleTagSelect(option)
+                  }
+                  absoluteStyle={{
+                    right: "0px",
+                  }}
+                />
+              )}
           </Stack>
         </Stack>
       </Grid>

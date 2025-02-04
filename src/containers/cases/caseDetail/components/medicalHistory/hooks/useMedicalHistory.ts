@@ -1,11 +1,10 @@
 import {
   CaseDetail,
-  DiseaseReport,
+  DiseaseClass,
   ImageType,
   ImageTypeTwo,
   MapViewFilter,
   ReportsDetailWithBodyPart,
-  caseTags,
 } from "@/interface";
 import axiosInstance, { endpoints } from "@/lib/axios";
 import {
@@ -21,7 +20,6 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { MapViewEnum } from "../../../constants";
 import { activeYearInViewVar } from "../../../state";
-import { tagsFilter } from "../constants";
 
 interface MapViewProps {
   caseDetail: CaseDetail | null;
@@ -35,7 +33,9 @@ export default function useMedicalHistory({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const partId = searchParams.get("partId");
+  const partIdParam = searchParams.get("partId");
+  const icdCodeParam = searchParams.get("icd-code");
+  const reportIdParam = searchParams.get("reportId");
   const activeYearInViewParam = searchParams.get("activeYearInView") || "0";
   const viewParam = searchParams.get("view");
   const reportIndexParm = searchParams.get("reportIndex");
@@ -46,20 +46,20 @@ export default function useMedicalHistory({
   >(caseDetail?.reports || []);
   const [totalAmountSpent, setTotalAmountSpent] = useState<string>("0");
   const [imageList, setImageList] = useState<ImageType[]>([]);
-  const [bodyParts, setBodyParts] = useState<DiseaseReport[]>([]);
+  const [bodyParts, setBodyParts] = useState<DiseaseClass[]>([]);
   const [providers, setProviders] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [listView, setListView] = useState<any[]>([]);
   const [searchVal, setSearchVal] = useState("");
-  const [caseTags, setCaseTags] = useState<caseTags[]>([]);
 
   const [filterValues, setFilterValues] = useState<MapViewFilter>({
     bodyPart: "",
-    tag: "",
+    icdCode: "",
+    tag: [],
     provider: "",
   });
 
-  const activeYearInView = useReactiveVar(activeYearInViewVar);
+  // const activeYearInView = useReactiveVar(activeYearInViewVar);
 
   const handleOnLoadMapView = () => {
     if (!caseDetail) return;
@@ -72,18 +72,21 @@ export default function useMedicalHistory({
     handleGetTotalAmountSpent(reports);
     handleGetImageList(reports);
     handleGetListView(reports);
-    handleGetBodyParts(reports);
+    handleGetBodyParts(reports, filterValues);
     handleGetProviders(reports);
   };
 
   const handleOnLoadDetailsView = () => {
     if (!caseDetail) return;
     const reports = extractFilteredReports(caseDetail.reports, filterValues);
-    // console.log("handleOnLoadDetailsView", caseDetail.reports.length, reports.length);
-    setFilteredReports(reports);
-    handleGetImageList([reports[reportIndex]]);
-    handleGetBodyParts(caseDetail.reports);
-    handleGetProviders(caseDetail.reports);
+    if (reports.length && !reports[reportIndex]) {
+      handleReloadPathWithParams({ reportIndex: 0 });
+    } else {
+      setFilteredReports(reports);
+      handleGetImageList([reports[reportIndex]]);
+      handleGetBodyParts(reports);
+      handleGetProviders(reports);
+    }
   };
 
   const handleGetTotalAmountSpent = (reports: ReportsDetailWithBodyPart[]) => {
@@ -97,8 +100,9 @@ export default function useMedicalHistory({
     setTotalAmountSpent(totalAmountSpent);
   };
 
-  const handleGetImageList = (reports: ReportsDetailWithBodyPart[]) => {
-    if (!partId && viewParam === MapViewEnum.detailsView) {
+  const handleGetImageList = (reports: ReportsDetailWithBodyPart[] | []) => {
+    if (!reports.length) setImageList([]);
+    if (!partIdParam && viewParam === MapViewEnum.detailsView) {
       setImageList([]);
     } else {
       const extractedImages = extractImagesFromReport(reports, filterValues);
@@ -106,8 +110,12 @@ export default function useMedicalHistory({
     }
   };
 
-  const handleGetBodyParts = (reports: ReportsDetailWithBodyPart[]) => {
-    const bodyParts = extractBodyPartsFromReport(reports);
+  const handleGetBodyParts = (
+    reports: ReportsDetailWithBodyPart[],
+    filterValues?: MapViewFilter
+  ) => {
+    const bodyParts = extractBodyPartsFromReport(reports, filterValues);
+    // console.log("bodyParts", bodyParts);
     setBodyParts(bodyParts);
   };
 
@@ -130,7 +138,11 @@ export default function useMedicalHistory({
         //     amountSpent: report.amountSpent,
         //   };
         // }
-        if (filterValues.tag && report.tags.includes(filterValues.tag)) {
+        if (
+          filterValues.tag &&
+          filterValues.tag.length &&
+          filterValues.tag.includes(report._id.toString())
+        ) {
           return {
             nameOfDisease: report.nameOfDisease,
             amountSpent: report.amountSpent,
@@ -158,10 +170,63 @@ export default function useMedicalHistory({
   };
 
   const handleSelect = (fieldName: string, selectedVal: string) => {
-    setFilterValues({ ...filterValues, [fieldName]: selectedVal });
-    // const searchParams = new URLSearchParams();
-    // searchParams.set("reportIndex", "0");
-    // router.push(`${pathname}?${searchParams.toString()}`);
+    if (fieldName == "tag") {
+      if (selectedVal) {
+        console.log("filterValues", fieldName, selectedVal);
+        if (viewParam === MapViewEnum.detailsView) {
+          getReportsByDcTagMapping(selectedVal).then((reportIds) => {
+            setFilterValues({ ...filterValues, [fieldName]: reportIds });
+          });
+        }
+        if (viewParam === MapViewEnum.mapView) {
+          getReportsByTagMapping(selectedVal).then((response) => {
+            if (!response) return;
+            const { reportIds, dcs } = response;
+            const uniqueDcs = new Set(dcs);
+            const uniqueDcsArray = Array.from(uniqueDcs) as unknown as string[];
+            setFilterValues({
+              ...filterValues,
+              [fieldName]: reportIds,
+              dcs: uniqueDcsArray,
+            });
+          });
+        }
+      } else setFilterValues({ ...filterValues, [fieldName]: [], dcs: [] });
+    } else {
+      setFilterValues({ ...filterValues, [fieldName]: selectedVal });
+    }
+  };
+
+  const getReportsByDcTagMapping = async (caseTagId: string) => {
+    if (!caseDetail || !preferredClassification) return;
+    const response = await axiosInstance.post(
+      `${endpoints.case.reports.updateReport}/${caseDetail._id}/reports/filter-by-dc`,
+      {
+        caseTagId,
+        dc: preferredClassification._id,
+      }
+    );
+    const filteredReports = response.data.map(
+      (tag: { report: string }) => tag.report
+    );
+
+    return filteredReports;
+  };
+
+  const getReportsByTagMapping = async (caseTagId: string) => {
+    if (!caseDetail) return;
+    const response = await axiosInstance.post(
+      `${endpoints.case.reports.updateReport}/${caseDetail._id}/reports/filter-by-tags`,
+      {
+        caseTagId,
+      }
+    );
+    const filteredReports = response.data.map(
+      (tag: { report: string }) => tag.report
+    );
+    const filteredDcs = response.data.map((tag: { dc: string }) => tag.dc);
+
+    return { reportIds: filteredReports, dcs: filteredDcs };
   };
 
   const handleSearch = (val: string) => {
@@ -182,26 +247,23 @@ export default function useMedicalHistory({
         });
         return found;
       });
+      console.log("filteredReports", filteredReports);
       setSelectedCategory(category);
-      // setFilteredReports(filteredReports);
-      // handleGetTotalAmountSpent(filteredReports);
       handleGetImageList(filteredReports);
-      // handleGetListView(filteredReports);
-      // handleGetBodyParts(filteredReports);
-      // handleGetProviders(filteredReports);
     } else {
       setSelectedCategory("");
       handleOnLoadMapView();
     }
   };
 
-  const getCaseTags = async (caseId: string) => {
-    try {
-      const response = await axiosInstance.get(
-        `${endpoints.case.reports.updateReport}/${caseId}/tags`
-      );
-      setCaseTags(response.data || []);
-    } catch (error) {}
+  const handleReloadPathWithParams = (params: { [key: string]: any }) => {
+    const searchParamsInner = new URLSearchParams(searchParams.toString());
+
+    Object.entries(params).forEach(([key, value]) => {
+      searchParamsInner.set(key, value);
+    });
+
+    router.push(`${pathname}?${searchParamsInner.toString()}`);
   };
 
   const filteredReportsSearch = useMemo(() => {
@@ -236,10 +298,16 @@ export default function useMedicalHistory({
               ...image,
               icdCode: part.icdCode,
               reportId: part.reportId,
+              classificationId: part?._id,
             });
           } else {
             mapping[image.categoryName] = [
-              { ...image, icdCode: part.icdCode, reportId: part.reportId },
+              {
+                ...image,
+                icdCode: part.icdCode,
+                reportId: part.reportId,
+                classificationId: part?._id,
+              },
             ];
           }
         });
@@ -252,6 +320,7 @@ export default function useMedicalHistory({
           categoryName: "",
           icdCode: part.icdCode,
           reportId: part.reportId,
+          classificationId: part?._id,
         });
       }
     });
@@ -259,16 +328,20 @@ export default function useMedicalHistory({
     return mapping;
   }, [imageList]);
 
-  const tagsArray = useMemo(() => {
-    if (!caseTags.length) return [];
-    const labelValue = caseTags.map((tag) => {
-      return {
-        label: tag.tagName,
-        value: tag._id.toString() as any,
-      };
-    });
-    return tagsFilter.slice(0, 2).concat(labelValue);
-  }, [caseDetail]);
+  const preferredClassification = useMemo(() => {
+    if (!caseDetail) return null;
+    const currentReport = caseDetail.reports.find(
+      (item) => item._id === reportIdParam
+    );
+    if (!currentReport) return null;
+    const reportClassifications = currentReport.classification;
+    const preferredClassification = reportClassifications.find(
+      (item) =>
+        item.images.find((img) => img._id === partIdParam) ||
+        item.icdCode === icdCodeParam
+    );
+    return preferredClassification;
+  }, [caseDetail, partIdParam, icdCodeParam, reportIdParam]);
 
   // console.log("filteredReportsSearch", filteredReportsSearch);
 
@@ -281,18 +354,20 @@ export default function useMedicalHistory({
   }, [caseDetail, filterValues, isMapView, reportIndex]);
 
   useEffect(() => {
-    if (partId) {
-      setFilterValues({ ...filterValues, bodyPart: partId });
+    if (partIdParam) {
+      setFilterValues({ ...filterValues, bodyPart: partIdParam });
     } else {
       setFilterValues({ ...filterValues, bodyPart: "" });
     }
-  }, [partId]);
+  }, [partIdParam]);
 
   useEffect(() => {
-    (async () => {
-      if (caseDetail) await getCaseTags(caseDetail._id);
-    })();
-  }, [caseDetail]);
+    if (icdCodeParam) {
+      setFilterValues({ ...filterValues, icdCode: icdCodeParam });
+    } else {
+      setFilterValues({ ...filterValues, icdCode: "" });
+    }
+  }, [icdCodeParam]);
 
   // useEffect(() => {
   //   if (activeYearInViewParam) activeYearInViewVar(+activeYearInViewParam);
@@ -316,7 +391,6 @@ export default function useMedicalHistory({
     imageList,
     listView,
     bodyParts,
-    tagsArray,
     providers,
     mappingByCategory,
     handleSelect,

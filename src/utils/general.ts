@@ -1,8 +1,9 @@
 import {
-  DiseaseReport,
+  DiseaseClass,
   ImageType,
   MapViewFilter,
   ReportsDetailWithBodyPart,
+  ReportsFilter,
 } from "@/interface";
 
 export const fQueryParams = (filter?: Record<string, any>) => {
@@ -93,84 +94,92 @@ export const extractFilteredReports = (
   reports: ReportsDetailWithBodyPart[],
   filter?: MapViewFilter
 ) => {
-  const hasFilter =
-    filter && (filter.bodyPart || filter.tag || filter.provider);
-  const filteredReports: ReportsDetailWithBodyPart[] = [];
+  if (!filter) return reports;
 
-  reports.forEach((report) => {
-    let shouldAddReport = false; // Flag to track if the report should be added
+  const { tag, provider, bodyPart } = filter;
+  const hasFilter = tag?.length || provider || bodyPart || filter?.icdCode;
+  if (!hasFilter) return reports;
 
-    report.classification.forEach((classification) => {
-      if (hasFilter) {
-        if (filter.bodyPart) {
-          const filtered = classification.images.filter(
-            (item) => item._id == filter.bodyPart
-          );
-          if (filtered.length) shouldAddReport = true;
-        } else if (
-          filter.tag &&
-          report.tags?.length &&
-          report.tags.includes(filter.tag)
-        ) {
-          shouldAddReport = true;
-        } else if (
-          filter.provider &&
-          filter.provider?.toLowerCase() === report.providerName?.toLowerCase()
-        ) {
-          shouldAddReport = true;
-        }
-      } else {
-        shouldAddReport = true; // Add if no filter is applied
-      }
-    });
+  return reports.filter((report) => {
+    if (tag?.length && !tag.includes(report._id.toString())) return false;
 
-    // Add the report only once if it matches any criteria
-    if (shouldAddReport) {
-      filteredReports.push(report);
+    if (
+      provider &&
+      provider.toLowerCase() !== report.providerName?.toLowerCase()
+    ) {
+      return false;
     }
-  });
 
-  return filteredReports;
+    if (bodyPart) {
+      const hasMatchingBodyPart = report.classification.some((classification) =>
+        classification.images.some((image) => image._id === bodyPart)
+      );
+      if (!hasMatchingBodyPart) return false;
+    }
+
+    if (filter?.icdCode) {
+      const hasMatchingIcdCode = report.icdCodes?.includes(filter.icdCode);
+      if (!hasMatchingIcdCode) return false;
+    }
+
+    return true;
+  });
 };
 
 export const extractImagesFromReport = (
   reports: ReportsDetailWithBodyPart[],
   filter?: MapViewFilter
 ) => {
-  const hasFilter =
-    filter && (filter.bodyPart || filter.tag || filter.provider);
-  const images: ImageType[] = [];
-  reports.forEach((report) => {
-    if (report) {
-      report.classification.forEach((classification) => {
-        if (classification.images && classification.images.length) {
-          if (hasFilter) {
-            if (filter.bodyPart) {
-              const filtered = classification.images.filter(
-                (item) => item._id == filter.bodyPart
-              );
-              // console.log("extractImagesFromReport", filtered);
-              if (filtered.length) images.push(...filtered);
-            } else if (filter.tag && report.tags?.includes(filter.tag)) {
-              images.push(...classification.images);
-            } else if (
-              filter.provider &&
-              filter.provider?.toLowerCase() ===
-                report.providerName?.toLowerCase()
-            ) {
-              images.push(...classification.images);
-            }
-          } else images.push(...classification.images);
+  if (!filter) {
+    // Return all images if no filter is applied
+    return reports.flatMap((report) =>
+      report.classification.flatMap((classification) => classification.images)
+    );
+  }
+
+  const { tag, provider, bodyPart } = filter;
+  const hasFilter = tag?.length || provider || bodyPart;
+
+  return reports.flatMap((report) => {
+    if (tag && tag.length) {
+      const matchesTag = tag.includes(report._id.toString());
+      if (!matchesTag) return [];
+    }
+    if (provider) {
+      const matchesProvider =
+        provider?.toLowerCase() === report.providerName?.toLowerCase();
+      if (!matchesProvider) return [];
+    }
+
+    if (bodyPart) {
+      return report.classification.flatMap((classification) => {
+        if (!classification.images.length) return [];
+
+        if (!hasFilter) return classification.images; // No filter, return all images.
+
+        // Check if the report matches the filter conditions
+
+        const matchesBodyPart = bodyPart
+          ? classification.images.some((image) => image._id === bodyPart)
+          : false;
+
+        if (matchesBodyPart) {
+          return classification.images.filter(
+            (image) => image._id === bodyPart
+          );
         }
+
+        return [];
       });
     }
+    return report.classification.flatMap(
+      (classification) => classification.images
+    );
   });
-  console.log("extractImagesFromReport", images);
-  return images;
 };
 
 export const extractBodyPartsFromClassification = (
-  classifications: DiseaseReport[],
+  classifications: DiseaseClass[],
   bodyPart: string
 ) => {
   const images: ImageType[] = [];
@@ -187,7 +196,7 @@ export const extractBodyPartsFromClassification = (
   return images;
 };
 
-export function getUniqueFileNames(data: DiseaseReport[]) {
+export function getUniqueFileNames(data: DiseaseClass[]) {
   const uniqueFiles = new Map();
 
   data.forEach((item) => {
@@ -204,17 +213,113 @@ export function getUniqueFileNames(data: DiseaseReport[]) {
   return Array.from(uniqueFiles.values());
 }
 
+// export const extractBodyPartsFromReport = (
+//   reports: ReportsDetailWithBodyPart[]
+// ): DiseaseClass[] => {
+//   return reports.reduce((bodyParts: DiseaseClass[], report) => {
+//     report.classification.forEach((classification) => {
+//       if (classification.bodyParts) {
+//         bodyParts.push({ ...classification, reportId: report._id });
+//       }
+//     });
+//     return bodyParts;
+//   }, []);
+// };
+
 export const extractBodyPartsFromReport = (
-  reports: ReportsDetailWithBodyPart[]
-): DiseaseReport[] => {
-  return reports.reduce((bodyParts: DiseaseReport[], report) => {
-    report.classification.forEach((classification) => {
-      if (classification.bodyParts) {
-        bodyParts.push({ ...classification, reportId: report._id });
-      }
-    });
-    return bodyParts;
-  }, []);
+  reports: ReportsDetailWithBodyPart[],
+  filter?: MapViewFilter
+): DiseaseClass[] => {
+  if (!filter) {
+    return reports.flatMap((report) =>
+      report.classification
+        .filter((classification) => classification.bodyParts)
+        .map((classification) => ({ ...classification, reportId: report._id }))
+    );
+  }
+
+  const { tag, provider, bodyPart } = filter;
+  const hasFilter = tag?.length || provider || bodyPart;
+
+  return reports.flatMap((report) => {
+    // Apply the same filtering logic as extractFilteredReports
+    if (tag?.length && !tag.includes(report._id.toString())) return [];
+    if (
+      provider &&
+      provider.toLowerCase() !== report.providerName?.toLowerCase()
+    )
+      return [];
+
+    return report.classification
+      .filter((classification) => {
+        if (!classification?._id) return true;
+        if (!classification.bodyParts) return false;
+        if (filter.dcs && filter.dcs.length)
+          return filter.dcs.includes(classification._id);
+        if (!bodyPart) return true; // If no specific bodyPart filter, include all
+
+        return classification.images.some((image) => image._id === bodyPart);
+      })
+      .map((classification) => ({ ...classification, reportId: report._id }));
+  });
+};
+
+export const filterReportsByDcForReporting = (
+  reports: ReportsDetailWithBodyPart[],
+  filter: ReportsFilter
+): ReportsDetailWithBodyPart[] => {
+  const { tag, searchVal, dcs, icdCodes, isFiltered } = filter;
+
+  if (!tag?.length && !dcs?.length && !icdCodes?.length && !searchVal) {
+    if (!isFiltered) return reports;
+    return [];
+  }
+  const normalizedSearchVal = searchVal?.toLowerCase();
+
+  return reports.flatMap((report) => {
+    if (tag?.length && !tag.includes(report._id.toString())) return [];
+
+    if (
+      normalizedSearchVal &&
+      ![
+        report.nameOfDisease,
+        report.providerName,
+        ...(report.icdCodes || []),
+      ].some((field) => field.toLowerCase().includes(normalizedSearchVal))
+    ) {
+      return [];
+    }
+
+    if (!dcs?.length && !icdCodes?.length) return [report];
+
+    const classifications = report.classification
+      .filter((classification) => {
+        const classId = classification?._id;
+        // if (!classId) {
+        //   console.log("No classId", classification, dcs, icdCodes);
+        // };
+        if (classId && dcs) {
+          return classification.bodyParts && dcs.includes(classId);
+        } else {
+          return icdCodes?.includes(classification.icdCode);
+        }
+      })
+      .map((classification) => ({
+        ...classification,
+        reportId: report._id,
+      }));
+
+    const nameOfDiseaseByIcdCode = report.nameOfDiseaseByIcdCode?.filter(
+      (item) =>
+        classifications.some(
+          (classification) => classification.icdCode === item.icdCode
+        )
+    );
+
+    return [
+      { ...report, classification: classifications, nameOfDiseaseByIcdCode },
+    ];
+  });
 };
 
 export const getReportsInYear = (

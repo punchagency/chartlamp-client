@@ -84,10 +84,6 @@ export function useCaseDetails() {
   }, [refetchCaseDetails]);
 
   useEffect(() => {
-    console.log(
-      "refetchCaseDetailsWithoutLoading",
-      refetchCaseDetailsWithoutLoading
-    );
     if (refetchCaseDetailsWithoutLoading) getCaseDetails(true);
   }, [refetchCaseDetailsWithoutLoading]);
 

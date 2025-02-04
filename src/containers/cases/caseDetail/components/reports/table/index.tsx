@@ -124,11 +124,17 @@ export default function ReportTable({ reportData, loading }: TableProps) {
     if (!reportData) return [];
     if (!reportData.length) return [];
     return reportData.map((data) => {
-      const icd = data?.icdCodes?.length ? data?.icdCodes?.join(", ") : "--";
+      const nameOfDiseaseByIcdCode = data?.nameOfDiseaseByIcdCode;
+      const icd = nameOfDiseaseByIcdCode
+        ? nameOfDiseaseByIcdCode.map((item) => item?.icdCode).join(", ")
+        : "--";
+      const diseaseNames = nameOfDiseaseByIcdCode
+        ? nameOfDiseaseByIcdCode.map((item) => item?.nameOfDisease).join(", ")
+        : "--";
       const amountSpent = parseInt(
         data.amountSpent.replace("$", "").replace(",", "")
       );
-      return createData(icd, data.nameOfDisease, amountSpent, data.dateOfClaim);
+      return createData(icd, diseaseNames, amountSpent, data.dateOfClaim);
     });
   }, [reportData]);
 

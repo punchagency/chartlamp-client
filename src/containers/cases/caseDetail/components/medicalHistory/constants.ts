@@ -1,6 +1,6 @@
 import { TagsType } from "@/interface";
 
-export const tagsFilter = [
+const tagsFilter = [
   {
     label: "Claim Related",
     value: TagsType.CLAIM_RELATED,
@@ -14,3 +14,8 @@ export const tagsFilter = [
     value: TagsType.CUSTOM_TAG,
   },
 ];
+
+const ClaimRelatedTag = "Claim Related";
+const PrivilegedTag = "Privileged";
+
+export { ClaimRelatedTag, PrivilegedTag, tagsFilter };

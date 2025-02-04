@@ -1,29 +1,19 @@
 import AnatomyView from "@/components/AnatomyView";
-import {
-  CaseDetail,
-  DiseaseReport,
-  ImageTypeTwo,
-  OptionsType,
-} from "@/interface";
+import { CaseDetail, ImageTypeTwo, OptionsType } from "@/interface";
 import { SECONDARY, pxToRem } from "@/theme";
-import { useReactiveVar } from "@apollo/client";
 import CloseIcon from "@mui/icons-material/Close";
 import { Collapse, IconButton, Stack, Typography } from "@mui/material";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { CaseDetailEnum, MapViewEnum } from "../../../constants";
-import { showFilterVar } from "../../../state";
-import TimeLineView from "../TimeLineView";
-import Filter from "../filter";
+import DiseaseClassificationListView from "./components/DiseaseClassificationListView";
+import useMapView from "./hook";
 
 const SECONDARY400 = "rgba(53, 81, 81, 1)";
 
 interface MapViewProps {
   caseDetail: CaseDetail | null; // Replace 'any' with the actual type of 'caseData'
   view: string;
-  bodyParts: DiseaseReport[];
-  providers: any;
-  handleSelect: any;
   imageList: any;
   totalAmountSpent: string;
   listView: any;
@@ -58,9 +48,6 @@ export default function IcdCodeDescription({
   caseDetail,
   view,
   selectedCategory,
-  bodyParts,
-  providers,
-  handleSelect,
   handleFilterByCategory,
   imageList,
   totalAmountSpent,
@@ -69,25 +56,23 @@ export default function IcdCodeDescription({
   tagsArray,
 }: MapViewProps) {
   const router = useRouter();
-  // const activeYearInView = useReactiveVar(activeYearInViewVar);
   const searchParams = useSearchParams();
   const activeYearInViewParam = searchParams.get("activeYearInView");
-  const showFilter = useReactiveVar(showFilterVar);
   const [checked, setChecked] = useState(false);
-
-  // console.log("IcdCodeDescription", mappingByCategory);
-  // console.log("caseDetail", caseDetail);
+  const {
+    caseId,
+    selectedTag,
+    loading,
+    caseDcTags,
+    handleTagIcdCode,
+    setSelectedTag,
+    handleCancel,
+    handleAddCaseTag,
+    handleUpdateMultipleCaseDcTags,
+  } = useMapView();
 
   return (
     <Stack flex={1}>
-      <Filter
-        showFilter={showFilter}
-        bodyParts={bodyParts}
-        providers={providers}
-        handleSelect={handleSelect}
-        tags={tagsArray}
-      />
-
       {caseDetail && caseDetail.reports && caseDetail.reports.length > 0 && (
         <>
           <Stack
@@ -113,6 +98,7 @@ export default function IcdCodeDescription({
                 left: pxToRem(16),
                 zIndex: 1,
                 bgcolor: "white",
+                display: "none",
               }}
             >
               <Stack
@@ -227,14 +213,16 @@ export default function IcdCodeDescription({
                 </Typography>
               </Stack>
             </Stack>
+
             <Stack
               sx={{
+                display: "none",
                 width: pxToRem(282),
                 border: "1px solid rgba(221, 225, 225, 1)",
                 borderTop: "none",
                 borderBottomLeftRadius: pxToRem(16),
                 borderBottomRightRadius: pxToRem(16),
-                maxHeight: "calc(100vh - 112px - 200px)",
+                maxHeight: "calc(100vh - 60%)",
                 overflowY: "auto",
                 scrollbarWidth: "thin",
                 position: "absolute",
@@ -317,6 +305,28 @@ export default function IcdCodeDescription({
                 ))}
               </Stack>
             </Stack>
+
+            <DiseaseClassificationListView
+              tagsArray={tagsArray.slice(0, tagsArray.length - 1)}
+              mappingByCategory={mappingByCategory}
+              selectedTag={selectedTag}
+              loading={loading}
+              caseDcTags={caseDcTags}
+              handleTagIcdCode={handleTagIcdCode}
+              setSelectedTag={setSelectedTag}
+              handleCancel={handleCancel}
+              handleAddCaseTag={handleAddCaseTag}
+              handleUpdateMultipleCaseDcTags={handleUpdateMultipleCaseDcTags}
+              handleIcdCodeClick={(part: ImageTypeTwo) =>
+                router.push(
+                  `/dashboard/case/${caseDetail._id}/${CaseDetailEnum.medicalHistory}?view=${MapViewEnum.detailsView}&reportId=${part.reportId}&partId=${part._id}&icd-code=${part.icdCode}&activeYearInView=${activeYearInViewParam}`
+                )
+              }
+              handleFilterByCategory={handleFilterByCategory}
+              caseId={caseId}
+              selectedCategory={selectedCategory}
+            />
+
             <Stack
               justifyContent="center"
               sx={{
@@ -334,7 +344,7 @@ export default function IcdCodeDescription({
                 selectedCategory={selectedCategory}
                 onPartSelect={(path: string) => router.push(path)}
               />
-              <TimeLineView view={view} caseDetail={caseDetail} />
+              {/* <TimeLineView view={view} caseDetail={caseDetail} /> */}
             </Stack>
           </Stack>
         </>

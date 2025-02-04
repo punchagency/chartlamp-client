@@ -1,13 +1,15 @@
-import { ReportsDetail, TagsType, UserDetail } from "@/interface";
+import { ReportsDetail, ReportsDetailWithBodyPart, TagsType, UserDetail } from "@/interface";
 import { NEUTRAL, pxToRem } from "@/theme";
 import { Stack } from "@mui/material";
 import { useMemo, useState } from "react";
+import useTags from "../../hooks/useTags";
 import TopNav from "../TopNav";
 import ActionsTab from "../actionsTab";
 import ReportTable from "./table";
+import useReport from "./hook/useReport";
 
 interface ReportProps {
-  reports: ReportsDetail[] | undefined;
+  reports: ReportsDetailWithBodyPart[] | undefined;
   user: UserDetail | undefined;
   loading: boolean;
   caseNumber?: string;
@@ -21,28 +23,11 @@ export default function Report({
   caseNumber,
   plaintiff,
 }: ReportProps) {
-  const [searchVal, setSearchVal] = useState("");
-  const [selectedTag, setSelectedTag] = useState("");
+  const { tagsArray } = useTags();
+  const { filteredReports, handleSelect } = useReport({
+    reports: reports || [],
+  });
 
-  const filteredSearchReports = useMemo(() => {
-    if (!searchVal) return reports;
-    return reports?.filter((report) => {
-      return (
-        report.nameOfDisease.toLowerCase().includes(searchVal.toLowerCase()) ||
-        report.providerName.toLowerCase().includes(searchVal.toLowerCase()) ||
-        report.icdCodes
-          ?.map((code) => code.toLowerCase())
-          .includes(searchVal.toLowerCase())
-      );
-    });
-  }, [reports, searchVal]);
-
-  const filteredTagReports = useMemo(() => {
-    if (!selectedTag) return filteredSearchReports;
-    return filteredSearchReports?.filter((report) => {
-      return report.tags?.includes(selectedTag as TagsType);
-    });
-  }, [filteredSearchReports, selectedTag]);
 
   return (
     <Stack
@@ -72,11 +57,12 @@ export default function Report({
           profilePicture={""}
           userName={plaintiff || ""}
           caseNumber={caseNumber || ""}
-          handleSearch={(val: string) => setSearchVal(val)}
-          handleTagSelect={(val) => setSelectedTag(val)}
+          handleSearch={(val: string) => handleSelect("searchVal", val)}
+          handleTagSelect={(val) => handleSelect("tag", val)}
+          tagsArray={tagsArray}
         />
       </Stack>
-      <ReportTable reportData={filteredTagReports} loading={loading} />
+      <ReportTable reportData={filteredReports} loading={loading} />
     </Stack>
   );
 }

@@ -1,4 +1,3 @@
-import { TagsType } from "@/interface";
 import { NEUTRAL, SECONDARY, pxToRem } from "@/theme";
 import { IconButton, Stack, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
@@ -11,14 +10,14 @@ export default function DiseaseTag({
   reportIndex,
   handleTagSelect,
 }: {
-  tag: {label: string, value: TagsType};
-  savedTags: TagsType[];
+  tag: {label: string, value: string};
+  savedTags: string[];
   reportIndex: number;
   handleTagSelect: (isRemove: boolean) => void;
 }) {
-  const [selected, setSelected] = useState<TagsType[] | []>([]);
+  const [selected, setSelected] = useState<string[] | []>([]);
 
-  const handleSelect = (tag: TagsType) => {
+  const handleSelect = (tag: string) => {
     if (selected.includes(tag as never)) {
       setSelected(selected.filter((item) => item !== tag));
       handleTagSelect(true);
@@ -28,7 +27,7 @@ export default function DiseaseTag({
     }
   };
 
-  const isSelect = (tag: TagsType) => {
+  const isSelect = (tag: string) => {
     return selected?.includes(tag as never);
   };
 

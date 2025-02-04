@@ -2,14 +2,19 @@ import LinearWithValueLabel from "@/components/LinearProgressWithLabel";
 import { CaseDetail, ReportsDetailWithBodyPart } from "@/interface";
 import { NEUTRAL, SECONDARY, pxToRem } from "@/theme";
 import { CronStatus } from "@/types/case";
+import { useReactiveVar } from "@apollo/client/react/hooks";
 import { Stack, Typography } from "@mui/material";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo } from "react";
 import { MapViewEnum } from "../../constants";
+import useTags from "../../hooks/useTags";
+import { showFilterVar } from "../../state";
 import TopNav from "../TopNav";
 import ActionsTab from "../actionsTab";
+import TimeLineView from "./TimeLineView";
 import IcdCodeDescription from "./codeDescription";
 import Details from "./details";
+import Filter from "./filter";
 import useMedicalHistory from "./hooks/useMedicalHistory";
 
 interface MapViewProps {
@@ -28,6 +33,9 @@ export default function MapView({ caseDetail, loading }: MapViewProps) {
   const reportId = searchParams.get("reportId");
   const reportIndexParm = searchParams.get("reportIndex");
   const reportIndex = reportIndexParm ? parseInt(reportIndexParm) : 0;
+  const showFilter = useReactiveVar(showFilterVar);
+
+  const { tagsArray } = useTags();
 
   const {
     filteredReports,
@@ -37,7 +45,6 @@ export default function MapView({ caseDetail, loading }: MapViewProps) {
     totalAmountSpent,
     selectedCategory,
     listView,
-    tagsArray,
     mappingByCategory,
     handleSelect,
     handleSearch,
@@ -47,69 +54,67 @@ export default function MapView({ caseDetail, loading }: MapViewProps) {
     isMapView: view === MapViewEnum.mapView,
   });
 
+  const updatedCaseDetail = useMemo(() => {
+    if (caseDetail) {
+      return {
+        ...caseDetail,
+        ...(view === MapViewEnum.detailsView && { reports: filteredReports }),
+        report: filteredReports?.[reportIndex] as ReportsDetailWithBodyPart,
+      };
+    }
+    return null;
+  }, [caseDetail, filteredReports, reportIndex, view]);
+
   useEffect(() => {
-    if (reportId && filteredReports && filteredReports.length > 0) {
+    if (
+      reportId &&
+      filteredReports &&
+      filteredReports.length > 0 &&
+      !reportIndexParm
+    ) {
       const index = filteredReports.findIndex(
         (report) => report._id === reportId
       );
       if (index >= 0) {
         const searchParamsInner = new URLSearchParams(searchParams.toString());
-        searchParamsInner.delete("reportId");
+        // searchParamsInner.delete("reportId");
         searchParamsInner.set("reportIndex", `${index}`);
-        console.log("searchParams", pathname, searchParamsInner);
+        // console.log("searchParams", pathname, searchParamsInner);
         router.push(`${pathname}?${searchParamsInner.toString()}`);
       }
     }
-  }, [reportId, filteredReports, searchParams, pathname, router]);
+  }, [
+    reportId,
+    filteredReports,
+    searchParams,
+    pathname,
+    router,
+    reportIndexParm,
+  ]);
 
   const getView = useMemo(() => {
     switch (view) {
       case MapViewEnum.mapView:
         return (
           <IcdCodeDescription
-            caseDetail={
-              caseDetail
-                ? {
-                    ...caseDetail,
-                    report: filteredReports?.[
-                      reportIndex
-                    ] as ReportsDetailWithBodyPart,
-                  }
-                : null
-            }
+            caseDetail={updatedCaseDetail}
             view={view}
             imageList={imageList}
-            tagsArray={tagsArray}
-            bodyParts={bodyParts}
-            providers={providers}
             totalAmountSpent={totalAmountSpent}
             listView={listView}
-            handleSelect={handleSelect}
             mappingByCategory={mappingByCategory}
             selectedCategory={selectedCategory}
             handleFilterByCategory={handleFilterByCategory}
+            tagsArray={tagsArray}
           />
         );
       case MapViewEnum.detailsView:
         return (
           <Details
-            caseDetail={
-              caseDetail
-                ? {
-                    ...caseDetail,
-                    reports: filteredReports,
-                    report: filteredReports?.[
-                      reportIndex
-                    ] as ReportsDetailWithBodyPart,
-                  }
-                : null
-            }
+            caseDetail={updatedCaseDetail}
             view={view}
             tagsArray={tagsArray}
             imageList={imageList}
-            bodyParts={bodyParts}
-            providers={providers}
-            handleSelect={handleSelect}
             mappingByCategory={mappingByCategory}
             selectedCategory={selectedCategory}
             handleFilterByCategory={handleFilterByCategory}
@@ -134,23 +139,44 @@ export default function MapView({ caseDetail, loading }: MapViewProps) {
   return (
     <Stack
       flex={1}
+      bgcolor={NEUTRAL[0]}
       sx={{
         boxShadow: { xs: "none", sm: "0px 0px 10px rgba(5, 113, 112, 0.04)" },
         borderRadius: { xs: 0, sm: pxToRem(24) },
-        background: NEUTRAL[0]
+        overflowY: "scroll",
+        // hide scroll bar
+        "&::-webkit-scrollbar": {
+          display: "none",
+        },
       }}
     >
-      <TopNav />
-      <ActionsTab
-        // profilePicture={caseDetail?.user?.profilePicture || ""}
-        profilePicture={""}
-        userName={caseDetail?.plaintiff || ""}
-        caseNumber={caseDetail?.caseNumber || ""}
-        handleSearch={handleSearch}
-        handleUpload={() => {
-          // Add your handleUpload logic here
+      <Stack
+        sx={{
+          position: "sticky",
+          top: 0,
+          background: NEUTRAL[0],
+          zIndex: 100,
         }}
-      />
+      >
+        <TopNav />
+        <ActionsTab
+          profilePicture={""}
+          userName={caseDetail?.plaintiff || ""}
+          caseNumber={caseDetail?.caseNumber || ""}
+          handleSearch={handleSearch}
+          handleUpload={() => {
+            // Add your handleUpload logic here
+          }}
+        />
+        <Filter
+          showFilter={showFilter}
+          bodyParts={bodyParts}
+          providers={providers}
+          handleSelect={handleSelect}
+          tags={tagsArray.slice(0, tagsArray.length - 1)}
+          hideBodyPart={view === MapViewEnum.detailsView}
+        />
+      </Stack>
       <Stack flex={1}>
         <Stack flex={1}>
           {!loading && caseDetail && caseDetail?.reports.length > 0 && getView}
@@ -192,6 +218,18 @@ export default function MapView({ caseDetail, loading }: MapViewProps) {
               </Stack>
             )}
           </Stack>
+        )}
+      </Stack>
+      <Stack
+        sx={{
+          position: "sticky",
+          bottom: 0,
+          background: NEUTRAL[0],
+          zIndex: 100,
+        }}
+      >
+        {updatedCaseDetail && (
+          <TimeLineView view={view} caseDetail={updatedCaseDetail} />
         )}
       </Stack>
     </Stack>
