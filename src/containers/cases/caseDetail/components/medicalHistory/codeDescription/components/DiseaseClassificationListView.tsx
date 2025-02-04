@@ -157,32 +157,72 @@ export default function DiseaseClassificationListView({
         bgcolor: "white",
       }}
     >
-      <Stack
-        px={pxToRem(12)}
-        py={pxToRem(16)}
-        direction={"row"}
-        alignItems={"center"}
-        justifyContent={"space-between"}
-      >
-        <Typography variant={"h5"} color={SECONDARY[400]}>
-          Assign Tags
-        </Typography>
-        {Boolean(tagsArray.length) && (
-          <FilterDrop
-            title={selectedTag ? selectedTag : "Select Tag"}
-            hideClose={true}
-            options={tagsArray.map((item) => {
-              return { label: item.label, value: item.value };
-            })}
-            //   handleSelect={(option) => handleSelect("bodyPart", option)}
-            handleSelect={(option) => setSelectedTag(option)}
-            bodyStyle={{
-              width: "fit-content",
-              height: pxToRem(32),
-            }}
-          />
-        )}
-      </Stack>
+      {(() => {
+        const allBodyParts = Object.values(mappingByCategory).flat();
+        const isAllCategoryChecked = checkIsAllCategoryChecked(allBodyParts);
+        return (
+          <Stack>
+            <Stack
+              px={pxToRem(12)}
+              py={pxToRem(16)}
+              direction={"row"}
+              alignItems={"center"}
+              justifyContent={"space-between"}
+            >
+              <Typography variant={"h5"} color={SECONDARY[400]}>
+                Assign Tags
+              </Typography>
+              {Boolean(tagsArray.length) && (
+                <FilterDrop
+                  title={selectedTag ? selectedTag : "Select Tag"}
+                  hideClose={true}
+                  options={tagsArray.map((item) => {
+                    return { label: item.label, value: item.value };
+                  })}
+                  //   handleSelect={(option) => handleSelect("bodyPart", option)}
+                  handleSelect={(option) => setSelectedTag(option)}
+                  bodyStyle={{
+                    width: "fit-content",
+                    height: pxToRem(32),
+                  }}
+                />
+              )}
+            </Stack>
+            {selectedTag && (
+              <Stack
+                px={pxToRem(12)}
+                py={pxToRem(16)}
+                direction={"row"}
+                alignItems={"center"}
+                justifyContent={"flex-start"}
+                sx={{ borderTop: `1px solid ${NEUTRAL[201]}` }}
+              >
+                <Typography
+                  variant={"subtitle2"}
+                  color={PRIMARY[900]}
+                  fontSize={pxToRem(13)}
+                  sx={{ cursor: "pointer" }}
+                  onClick={() => {
+                    const newCaseTags = allBodyParts.map((item) => {
+                      return {
+                        dc: item.classificationId,
+                        icdCode: item.icdCode,
+                        report: item.reportId,
+                        caseTag: selectedTag,
+                        case: caseId,
+                        isRemove: isAllCategoryChecked ? true : false,
+                      };
+                    });
+                    handleAddCaseTag(newCaseTags);
+                  }}
+                >
+                  {isAllCategoryChecked ? "Unselect All" : "Select All"}
+                </Typography>
+              </Stack>
+            )}
+          </Stack>
+        );
+      })()}
 
       <Stack
         sx={{
@@ -237,7 +277,7 @@ export default function DiseaseClassificationListView({
                         variant={"subtitle2"}
                         color={PRIMARY[900]}
                         fontSize={pxToRem(13)}
-                        sx={{ cursor: "pointer" }}
+                        sx={{ cursor: "pointer", display: "none" }}
                         onClick={() => {
                           console.log(
                             "isAllCategoryChecked",
