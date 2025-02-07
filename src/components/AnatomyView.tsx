@@ -28,39 +28,11 @@ export default function AnatomyView({
   const searchParams = useSearchParams();
   const viewParam = searchParams.get("view");
   const containerRef: any = useRef<AnyKindOfDictionary>(null);
-  const paneContainerRef = useRef(null);
   const [svgContents, setSvgContents] = useState<{ [key: string]: string }>({});
-  const [popup, setPopup] = useState({
-    visible: false,
-    x: 0,
-    y: 0,
-  });
-
-  const handleImageClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
-      const { clientX, clientY } = event;
-
-      setPopup({
-        visible: true,
-        x: clientX - rect.left + 10, // Adjust relative to parent container
-        y: clientY - rect.top + 10,
-      });
-    }
-  };
-
-  const handleClosePopup = () => {
-    setPopup({ visible: false, x: 0, y: 0 });
-  };
 
   const getImageUrl = (fileName: string) => {
     const modifiedName = fileName.replace(/\s/g, "+").replace(/\//g, "+");
     return `https://chartlamp.s3.us-east-1.amazonaws.com/svgs/${modifiedName}.svg`;
-  };
-
-  const getImageDisplay = (svg: string) => {
-    const svgDataUrl = `data:image/svg+xml;base64,${btoa(svg)}`;
-    return svgDataUrl;
   };
 
   const handleClick = (event: any) => {
@@ -106,26 +78,6 @@ export default function AnatomyView({
   };
 
   useEffect(() => {
-    const driftInstances: any = [];
-
-    const driftImgs = document.querySelectorAll(".drift-img");
-    if (paneContainerRef.current) {
-      driftImgs.forEach((img: any) => {
-        const driftInstance = new Drift(img, {
-          paneContainer: paneContainerRef.current,
-          inlinePane: false,
-          zoomFactor: 5,
-        } as any);
-        driftInstances.push(driftInstance);
-      });
-    }
-
-    return () => {
-      driftInstances.forEach((instance: any) => instance.destroy());
-    };
-  }, [images]);
-
-  useEffect(() => {
     const fetchSVGs = async () => {
       const svgs: { [key: string]: string } = {};
       await Promise.all(
@@ -153,7 +105,7 @@ export default function AnatomyView({
     if (images.length) {
       fetchSVGs();
     }
-  }, [images]);
+  }, [images, viewParam]);
 
   return (
     <Stack
@@ -171,43 +123,34 @@ export default function AnatomyView({
     >
       <Box
         sx={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
+          position: "relative",
+          display: "block",
+          width: pxToRem(600),
+          flex: 1,
+          borderRadius: pxToRem(16),
+          alignSelf: "center",
         }}
       >
-        <Box
-          sx={{
-            position: "relative",
-            display: "block",
-            width: pxToRem(600),
-            height: "calc(100vh - 350px)",
-            borderRadius: pxToRem(16),
-          }}
-        >
-          <Image
-            src={`/parts/structure.svg`}
-            alt=""
-            fill={true}
-            layout="fill"
-            objectFit="contain"
-            objectPosition="none"
-            priority={true}
-          />
-        </Box>
-      </Box>
-      {Boolean(images?.length) &&
-        images?.map((item: ImageType, index: number) => (
-          <Box
-            key={index}
-            sx={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-            }}
-          >
+        <Image
+          src={`/parts/structure.svg`}
+          alt=""
+          fill={true}
+          layout="fill"
+          objectFit="contain"
+          objectPosition="none"
+          priority={true}
+        />
+        {Boolean(images?.length) &&
+          images?.map((item: ImageType, index: number) => (
+            // <Box
+            //   key={index}
+            //   sx={{
+            //     position: "absolute",
+            //     // top: "50%",
+            //     // left: "50%",
+            //     // transform: "translate(-50%, -50%)",
+            //   }}
+            // >
             <Box
               id={`${index}`}
               onClick={(e) => {
@@ -217,9 +160,12 @@ export default function AnatomyView({
                 if (onPartSelect) onPartSelect(images[preferredIndex]);
               }}
               sx={{
-                position: "relative",
-                display: "block",
-                height: "calc(100vh - 350px)",
+                position: "absolute",
+                height: "100%",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                // bgcolor: "green",
                 borderRadius: pxToRem(16),
                 "& svg": {
                   width: "100%",
@@ -236,8 +182,9 @@ export default function AnatomyView({
                 __html: svgContents[item.fileName] || "",
               }}
             />
-          </Box>
-        ))}
+            // </Box>
+          ))}
+      </Box>
     </Stack>
   );
 }

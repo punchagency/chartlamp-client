@@ -88,7 +88,8 @@ export default function DashboardLayout({
               ml: pxToRem(30),
               justifyContent: "center",
               alignItems: "center",
-              // bgcolor: 'red'
+              // bgcolor: 'red',
+              mt: pxToRem(30),
             }}
           >
             {children}

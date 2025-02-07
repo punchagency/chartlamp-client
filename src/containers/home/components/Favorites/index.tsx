@@ -1,7 +1,12 @@
 import { CustomImage } from "@/components/CustomImage";
+import {
+  CaseDetailEnum,
+  MapViewEnum,
+} from "@/containers/cases/caseDetail/constants";
 import { NEUTRAL, PRIMARY, SECONDARY, pxToRem } from "@/theme";
 import { formatCurrencyToNumber } from "@/utils/general";
 import { Stack, Typography } from "@mui/material";
+import { useRouter } from "next/navigation";
 
 function MostVisitedRow({
   name,
@@ -9,17 +14,20 @@ function MostVisitedRow({
   amountSpent,
   isLast,
   profilePicture,
+  onClick,
 }: {
   name: string;
   caseNumber: string;
   amountSpent: string;
   profilePicture: string;
   isLast: boolean;
+  onClick: () => void;
 }) {
   return (
     <Stack
       direction={"row"}
       alignItems={"center"}
+      onClick={onClick}
       //   justifyContent={"space-between"}
       minHeight={pxToRem(66)}
       sx={{
@@ -31,12 +39,7 @@ function MostVisitedRow({
         },
       }}
     >
-      <Stack
-        gap={pxToRem(6)}
-        direction={"row"}
-        alignItems={"center"}
-        flex={1}
-      >
+      <Stack gap={pxToRem(6)} direction={"row"} alignItems={"center"} flex={1}>
         <CustomImage
           src={profilePicture || "/images/userHeader.png"}
           wrapperSx={{
@@ -82,6 +85,7 @@ export default function FavoriteCases({
 }: {
   favoriteCases: any[];
 }) {
+  const router = useRouter();
   return (
     <Stack
       sx={{
@@ -115,6 +119,11 @@ export default function FavoriteCases({
                 .toLocaleString()}
               key={index}
               isLast={favoriteCases.length - 1 === index}
+              onClick={() =>
+                router.push(
+                  `/dashboard/case/${item._id}/${CaseDetailEnum.medicalHistory}?view=${MapViewEnum.detailsView}`
+                )
+              }
             />
           ))}
         </Stack>

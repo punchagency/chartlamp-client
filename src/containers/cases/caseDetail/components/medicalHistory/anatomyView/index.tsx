@@ -26,7 +26,7 @@ export default function HumanAnatomyView({
         borderRight: `1px solid ${NEUTRAL[900]}`,
         borderLeft: `1px solid ${NEUTRAL[900]}`,
         width: "100%",
-        height: { xs: "50vh", sm: "100%" },
+        height: "100%",
       }}
     >
       <AnatomyView

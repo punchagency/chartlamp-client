@@ -1,7 +1,6 @@
 import {
   DiseaseClass,
   ImageType,
-  ImageTypeTwo,
   MapViewFilter,
   ReportsDetailWithBodyPart,
   ReportsFilter,
@@ -135,16 +134,7 @@ export const extractImagesFromReport = (
   if (!filter) {
     // Return all images if no filter is applied
     return reports.flatMap((report) =>
-      report.classification.flatMap((classification) =>
-        classification.images.map((item) => {
-          return {
-            ...item,
-            icdCode: classification.icdCode,
-            reportId: classification.reportId,
-            classificationId: classification?._id,
-          };
-        })
-      )
+      report.classification.flatMap((classification) => classification.images)
     );
   }
 
@@ -166,14 +156,7 @@ export const extractImagesFromReport = (
       return report.classification.flatMap((classification) => {
         if (!classification.images.length) return [];
 
-        if (!hasFilter) return classification.images.map((item) => {
-          return {
-            ...item,
-            icdCode: classification.icdCode,
-            reportId: classification.reportId,
-            classificationId: classification?._id,
-          };
-        }); // No filter, return all images.
+        if (!hasFilter) return classification.images; // No filter, return all images.
 
         // Check if the report matches the filter conditions
 
@@ -182,31 +165,16 @@ export const extractImagesFromReport = (
           : false;
 
         if (matchesBodyPart) {
-          const resultImages = classification.images.filter(
+          return classification.images.filter(
             (image) => image._id === bodyPart
           );
-          return resultImages.map((item) => {
-            return {
-              ...item,
-              icdCode: classification.icdCode,
-              reportId: classification.reportId,
-              classificationId: classification?._id,
-            };
-          });
         }
 
         return [];
       });
     }
-    return report.classification.flatMap((classification) =>
-      classification.images.map((item) => {
-        return {
-          ...item,
-          icdCode: classification.icdCode,
-          reportId: classification.reportId,
-          classificationId: classification?._id,
-        };
-      })
+    return report.classification.flatMap(
+      (classification) => classification.images
     );
   });
 };

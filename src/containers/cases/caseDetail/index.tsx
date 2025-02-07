@@ -109,7 +109,7 @@ export default function CaseDetailPageContainer() {
   return (
     <Stack
       sx={{
-        height: "calc(100vh - 4.5rem)",
+        height: `calc(100vh - ${pxToRem(120)})`,
         width: "100%",
         // background: "#fff",
         overflowY: "hidden",
