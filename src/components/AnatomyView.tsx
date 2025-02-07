@@ -152,6 +152,7 @@ export default function AnatomyView({
             //   }}
             // >
             <Box
+              key={index}
               id={`${index}`}
               onClick={(e) => {
                 const preferredIndex = handleClick(e);
