@@ -1,10 +1,11 @@
-import ImageSelectorPopup from "@/containers/cases/caseDetail/components/medicalHistory/codeDescription/components/ImageSelectorPopup";
+import { MapViewEnum } from "@/containers/cases/caseDetail/constants";
 import { ImageType, ImageTypeTwo } from "@/interface";
 import { pxToRem } from "@/theme";
 import { Box, Stack } from "@mui/material";
 import Drift from "drift-zoom";
 import { AnyKindOfDictionary } from "lodash";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 export default function AnatomyView({
@@ -16,16 +17,19 @@ export default function AnatomyView({
   onPartSelect,
   hidePopUp = false,
 }: {
-  images: ImageType[];
+  images: ImageTypeTwo[];
   caseId?: string;
   mappingByCategory?: Record<string, ImageTypeTwo[]>;
   selectedCategory?: string;
   handleFilterByCategory?: (category: string) => void;
-  onPartSelect?: (path: string) => void;
+  onPartSelect?: (image: ImageTypeTwo) => void;
   hidePopUp?: boolean;
 }) {
+  const searchParams = useSearchParams();
+  const viewParam = searchParams.get("view");
   const containerRef: any = useRef<AnyKindOfDictionary>(null);
   const paneContainerRef = useRef(null);
+  const [svgContents, setSvgContents] = useState<{ [key: string]: string }>({});
   const [popup, setPopup] = useState({
     visible: false,
     x: 0,
@@ -49,6 +53,58 @@ export default function AnatomyView({
     setPopup({ visible: false, x: 0, y: 0 });
   };
 
+  const getImageUrl = (fileName: string) => {
+    const modifiedName = fileName.replace(/\s/g, "+").replace(/\//g, "+");
+    return `https://chartlamp.s3.us-east-1.amazonaws.com/svgs/${modifiedName}.svg`;
+  };
+
+  const getImageDisplay = (svg: string) => {
+    const svgDataUrl = `data:image/svg+xml;base64,${btoa(svg)}`;
+    return svgDataUrl;
+  };
+
+  const handleClick = (event: any) => {
+    const svg = event.target.closest("svg");
+    if (!svg) return;
+
+    // Get the click position
+    const point = svg.createSVGPoint();
+    point.x = event.clientX;
+    point.y = event.clientY;
+
+    // Convert to SVG coordinate system
+    const ctm = svg.getScreenCTM();
+    if (ctm) {
+      point.x = (point.x - ctm.e) / ctm.a;
+      point.y = (point.y - ctm.f) / ctm.d;
+    }
+
+    // Use elementsFromPoint to detect elements directly under the click position
+    const elementsAtPoint: any[] = document.elementsFromPoint(
+      event.clientX,
+      event.clientY
+    );
+
+    // console.log("elementsAtPoint", elementsAtPoint);
+
+    for (let element of elementsAtPoint) {
+      if (["path", "rect", "polygon"].includes(element.tagName.toLowerCase())) {
+        const fillColor = element.getAttribute("fill")?.toUpperCase();
+        if (!fillColor) continue;
+        // Skip white or transparent parts
+        if (!["WHITE", "#F1F3F3"].includes(fillColor)) {
+          // Check if this element is under the point
+          const isInside = element.isPointInFill
+            ? element.isPointInFill(point)
+            : false;
+          if (isInside) {
+            return element?.nearestViewportElement?.parentElement.id;
+          }
+        }
+      }
+    }
+  };
+
   useEffect(() => {
     const driftInstances: any = [];
 
@@ -69,23 +125,41 @@ export default function AnatomyView({
     };
   }, [images]);
 
-  // const getImageDisplay = (index: number) => {
-  //   const svg: any = images[index]?.svg;
-  //   const svgDataUrl = `data:image/svg+xml;base64,${btoa(svg)}`;
-  //   return svgDataUrl;
-  // };
+  useEffect(() => {
+    const fetchSVGs = async () => {
+      const svgs: { [key: string]: string } = {};
+      await Promise.all(
+        images.map(async (item, index) => {
+          try {
+            const url = getImageUrl(item.fileName);
+            const response = await fetch(url);
+            const responseText = await response.text();
+            if (!responseText.includes("NoSuchKey")) {
+              svgs[item.fileName] = responseText;
+            } else {
+              console.log(
+                "Image not found",
+                `${index} - ${item.fileName} - ${url}`
+              );
+            }
+          } catch (error) {
+            console.log("responseError", error, item.fileName);
+          }
+        })
+      );
+      setSvgContents(svgs);
+    };
 
-  const getImageUrl = (fileName: string) => {
-    const modifiedName = fileName.replace(/\s/g, "+").replace(/\//g, "+");
-    return `https://chartlamp.s3.us-east-1.amazonaws.com/svgs/${modifiedName}.svg`;
-  };
+    if (images.length) {
+      fetchSVGs();
+    }
+  }, [images]);
 
   return (
     <Stack
       alignItems={"flex-end"}
       sx={{
         width: "100%",
-        // height: "calc(100vh - 300px)",
         flex: 1,
         overflowY: "hidden",
         position: "relative",
@@ -135,70 +209,35 @@ export default function AnatomyView({
             }}
           >
             <Box
+              id={`${index}`}
+              onClick={(e) => {
+                const preferredIndex = handleClick(e);
+                if (!preferredIndex) return;
+                console.log("preferredIndex 1", images[preferredIndex]);
+                if (onPartSelect) onPartSelect(images[preferredIndex]);
+              }}
               sx={{
                 position: "relative",
                 display: "block",
-                width: pxToRem(600),
                 height: "calc(100vh - 350px)",
                 borderRadius: pxToRem(16),
-                // background: "red",
+                "& svg": {
+                  width: "100%",
+                  height: "100%",
+                  cursor:
+                    viewParam === MapViewEnum.mapView ? "pointer" : "default",
+                  "& path": {
+                    cursor:
+                      viewParam === MapViewEnum.mapView ? "pointer" : "default",
+                  },
+                },
               }}
-              onClick={(e) => handleImageClick(e)}
-            >
-              <Image
-                className="drift-img"
-                src={getImageUrl(item.fileName)}
-                data-zoom={getImageUrl(item.fileName)}
-                alt=""
-                fill={true}
-                layout="fill"
-                objectFit=""
-                objectPosition="none"
-                priority={true}
-                // onError={(e) => {
-                //   console.log("getImageUrl error", item.fileName);
-                //   // e.target.src = '';
-                // }}
-                onError={(e: any) => {
-                  e.target.style.display = "none";
-                }}
-                style={{
-                  cursor: "pointer",
-                  // background: "red",
-                }}
-              />
-            </Box>
+              dangerouslySetInnerHTML={{
+                __html: svgContents[item.fileName] || "",
+              }}
+            />
           </Box>
         ))}
-      {popup.visible && !hidePopUp && (
-        <Stack
-          sx={{
-            width: "fit-content",
-            maxHeight: "10rem",
-            border: "1px solid rgba(221, 225, 225, 1)",
-            borderTop: "none",
-            borderRadius: pxToRem(12),
-            overflowY: "auto",
-            scrollbarWidth: "thin",
-            position: "absolute",
-            top: popup.y,
-            left: popup.x,
-            zIndex: 10,
-            // bgcolor: "red",
-          }}
-        >
-          {
-            <ImageSelectorPopup
-              mappingByCategory={mappingByCategory || {}}
-              caseId={caseId || ""}
-              selectedCategory={selectedCategory || ""}
-              handleFilterByCategory={handleFilterByCategory || (() => {})}
-              handleClickAway={handleClosePopup}
-              onPartSelect={onPartSelect || (() => {})}
-            />
-          }
-        </Stack>
-      )}
     </Stack>
   );
 }

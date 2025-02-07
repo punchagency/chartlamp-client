@@ -11,12 +11,12 @@ export default function HumanAnatomyView({
   handleFilterByCategory,
   onPartSelect,
 }: {
-  imageList: ImageType[];
+  imageList: ImageTypeTwo[];
   caseId: string;
   mappingByCategory: Record<string, ImageTypeTwo[]>;
   selectedCategory: string;
   handleFilterByCategory: (category: string) => void;
-  onPartSelect: (path: string) => void;
+  onPartSelect: (image: ImageTypeTwo) => void;
 }) {
   return (
     <Stack
