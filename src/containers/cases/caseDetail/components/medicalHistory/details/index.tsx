@@ -12,7 +12,7 @@ import DetailsView from "./DetailsView";
 interface MapViewProps {
   caseDetail: CaseDetail | null; // Replace 'any' with the actual type of 'caseData'
   view: string;
-  imageList: ImageType[];
+  imageList: ImageTypeTwo[];
   selectedCategory: string;
   handleFilterByCategory: any;
   mappingByCategory: { [key: string]: ImageTypeTwo[] };
@@ -43,7 +43,7 @@ export default function Details({
                   mappingByCategory={mappingByCategory}
                   handleFilterByCategory={handleFilterByCategory}
                   selectedCategory={selectedCategory}
-                  onPartSelect={(path: string) => router.push(path)}
+                  onPartSelect={() => ''}
                 />
               </Grid>
               <Grid

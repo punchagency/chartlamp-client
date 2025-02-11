@@ -1,7 +1,6 @@
 import {
   CaseDetail,
   DiseaseClass,
-  ImageType,
   ImageTypeTwo,
   MapViewFilter,
   ReportsDetailWithBodyPart,
@@ -15,11 +14,9 @@ import {
   formatCurrencyToNumber,
   getReportsInYear,
 } from "@/utils/general";
-import { useReactiveVar } from "@apollo/client";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { MapViewEnum } from "../../../constants";
-import { activeYearInViewVar } from "../../../state";
 
 interface MapViewProps {
   caseDetail: CaseDetail | null;
@@ -45,7 +42,7 @@ export default function useMedicalHistory({
     ReportsDetailWithBodyPart[]
   >(caseDetail?.reports || []);
   const [totalAmountSpent, setTotalAmountSpent] = useState<string>("0");
-  const [imageList, setImageList] = useState<ImageType[]>([]);
+  const [imageList, setImageList] = useState<ImageTypeTwo[]>([]);
   const [bodyParts, setBodyParts] = useState<DiseaseClass[]>([]);
   const [providers, setProviders] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
@@ -172,7 +169,7 @@ export default function useMedicalHistory({
   const handleSelect = (fieldName: string, selectedVal: string) => {
     if (fieldName == "tag") {
       if (selectedVal) {
-        console.log("filterValues", fieldName, selectedVal);
+        // console.log("filterValues", fieldName, selectedVal);
         if (viewParam === MapViewEnum.detailsView) {
           getReportsByDcTagMapping(selectedVal).then((reportIds) => {
             setFilterValues({ ...filterValues, [fieldName]: reportIds });
@@ -353,21 +350,19 @@ export default function useMedicalHistory({
     if (!isMapView) handleOnLoadDetailsView();
   }, [caseDetail, filterValues, isMapView, reportIndex]);
 
-  useEffect(() => {
-    if (partIdParam) {
-      setFilterValues({ ...filterValues, bodyPart: partIdParam });
-    } else {
-      setFilterValues({ ...filterValues, bodyPart: "" });
-    }
-  }, [partIdParam]);
+useEffect(() => {
+  setFilterValues((prev) => ({
+    ...prev,
+    bodyPart: partIdParam || "",
+    icdCode: icdCodeParam || "",
+  }));
 
-  useEffect(() => {
-    if (icdCodeParam) {
-      setFilterValues({ ...filterValues, icdCode: icdCodeParam });
-    } else {
-      setFilterValues({ ...filterValues, icdCode: "" });
-    }
-  }, [icdCodeParam]);
+  // console.log("Updated filter values", {
+  //   bodyPart: partIdParam || "",
+  //   icdCode: icdCodeParam || "",
+  // });
+}, [partIdParam, icdCodeParam]);
+
 
   // useEffect(() => {
   //   if (activeYearInViewParam) activeYearInViewVar(+activeYearInViewParam);

@@ -92,7 +92,7 @@ export interface ImageTypeTwo extends ImageType {
 }
 
 export interface DiseaseClass {
-  images: ImageType[] | [];
+  images: ImageTypeTwo[] | [];
   bodyParts: string;
   description: string;
   reportId: string;

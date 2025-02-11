@@ -65,6 +65,7 @@ export default function Header({
         pl: pxToRem(24),
         boxShadow: "none",
         bgcolor: theme.palette.background.default,
+        // bgcolor: 'green'
       }}
     >
       <Toolbar sx={{ p: { xs: 0, md: 0 } }}>

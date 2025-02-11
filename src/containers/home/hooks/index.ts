@@ -1,5 +1,6 @@
 "use client";
 
+import { CaseDetail } from "@/interface";
 import axiosInstance, { endpoints } from "@/lib/axios";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -10,7 +11,7 @@ export function useDashboard() {
   const [claimRelatedReports, setClaimRelatedReports] = useState([]);
   const [mostVisitedCases, setMostVisitedCases] = useState([]);
   const [recentlyJoined, setRecentlyJoined] = useState([]);
-  const [lastViewed, setlastViewed] = useState(null);
+  const [lastViewed, setlastViewed] = useState<CaseDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
   const getUserStats = async () => {
@@ -55,10 +56,6 @@ export function useDashboard() {
       const response = await axiosInstance.get(endpoints.case.lastViewed);
 
       setlastViewed(response.data);
-      //  localStorage.setItem(
-      //    `lastViewed`,
-      //    JSON.stringify(response.data)
-      //  );
     } catch (error) {}
   };
 

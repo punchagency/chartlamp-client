@@ -130,6 +130,7 @@ export const extractImagesFromReport = (
   reports: ReportsDetailWithBodyPart[],
   filter?: MapViewFilter
 ) => {
+  // console.log('extractImagesFromReport', filter);
   if (!filter) {
     // Return all images if no filter is applied
     return reports.flatMap((report) =>

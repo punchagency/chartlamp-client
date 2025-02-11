@@ -4,10 +4,11 @@ import { SECONDARY, pxToRem } from "@/theme";
 import CloseIcon from "@mui/icons-material/Close";
 import { Collapse, IconButton, Stack, Typography } from "@mui/material";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { CaseDetailEnum, MapViewEnum } from "../../../constants";
 import DiseaseClassificationListView from "./components/DiseaseClassificationListView";
 import useMapView from "./hook";
+import image from "@/components/image";
 
 const SECONDARY400 = "rgba(53, 81, 81, 1)";
 
@@ -70,6 +71,14 @@ export default function IcdCodeDescription({
     handleAddCaseTag,
     handleUpdateMultipleCaseDcTags,
   } = useMapView();
+
+  const getDetailRoute = useCallback(
+    (part: ImageTypeTwo) => {
+      if (!caseDetail) return "";
+      return `/dashboard/case/${caseDetail._id}/${CaseDetailEnum.medicalHistory}?view=${MapViewEnum.detailsView}&reportId=${part.reportId}&partId=${part._id}&icd-code=${part.icdCode}&activeYearInView=${activeYearInViewParam}`;
+    },
+    [caseDetail, activeYearInViewParam]
+  );
 
   return (
     <Stack flex={1}>
@@ -342,7 +351,8 @@ export default function IcdCodeDescription({
                 mappingByCategory={mappingByCategory}
                 handleFilterByCategory={handleFilterByCategory}
                 selectedCategory={selectedCategory}
-                onPartSelect={(path: string) => router.push(path)}
+                // onPartSelect={(path: string) => router.push(path)}
+                onPartSelect={(image: ImageTypeTwo) => router.push(getDetailRoute(image))}
               />
               {/* <TimeLineView view={view} caseDetail={caseDetail} /> */}
             </Stack>
