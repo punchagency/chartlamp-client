@@ -1,8 +1,13 @@
+import { DashboardClaimRelatedReports } from "@/interface";
 import { NEUTRAL, SECONDARY, pxToRem } from "@/theme";
 import { Box, Stack, Typography } from "@mui/material";
 import ClaimsTable from "./ClaimsTable";
 
-export default function ClaimRelated({ claimRelatedReports }: { claimRelatedReports: any[] }) {
+export default function ClaimRelated({
+  claimRelatedReports,
+}: {
+  claimRelatedReports: DashboardClaimRelatedReports[];
+}) {
   return (
     <Stack
       sx={{

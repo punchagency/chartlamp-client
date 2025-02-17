@@ -2,6 +2,7 @@ import {
   CaseDetailEnum,
   MapViewEnum,
 } from "@/containers/cases/caseDetail/constants";
+import { DashboardClaimRelatedReports } from "@/interface";
 import { PRIMARY, SECONDARY, pxToRem } from "@/theme";
 import { Stack, Typography } from "@mui/material";
 import Table from "@mui/material/Table";
@@ -29,9 +30,10 @@ function createData(
   description: string,
   caseNumber: string,
   amount: string,
-  caseId: string
+  caseId: string,
+  reportId: string
 ) {
-  return { icdCode, description, caseNumber, amount, caseId };
+  return { icdCode, description, caseNumber, amount, caseId, reportId };
 }
 
 // const rows = [
@@ -54,16 +56,17 @@ const subtitle1 = {
 export default function ClaimsTable({
   claimRelatedReports,
 }: {
-  claimRelatedReports: any[];
+  claimRelatedReports: DashboardClaimRelatedReports[];
 }) {
   const router = useRouter();
   const rows = claimRelatedReports.map((report) => {
     return createData(
-      report.icdCodes[0],
+      report.icdCode,
       report.nameOfDisease,
       report.caseNumber,
       report.amountSpent || "not available",
-      report.caseId
+      report.case,
+      report.report
     );
   });
   return (
@@ -109,7 +112,7 @@ export default function ClaimsTable({
               key={row.icdCode}
               onClick={() =>
                 router.push(
-                  `/dashboard/case/${row.caseId}/${CaseDetailEnum.medicalHistory}?view=${MapViewEnum.detailsView}`
+                  `/dashboard/case/${row.caseId}/${CaseDetailEnum.medicalHistory}?view=${MapViewEnum.detailsView}&reportId=${row.reportId}&icd-code=${row.icdCode}`
                 )
               }
             >
@@ -131,23 +134,23 @@ export default function ClaimsTable({
         </TableBody>
       </Table>
 
-      {(!Boolean(rows?.length)) && (
-          <Stack
-            sx={{
-              width: "100%",
-              height: "100%",
-              minHeight: 200,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-              <Stack>
-                <Typography variant="h6" color={SECONDARY[400]}>
-                  No data available
-                </Typography>
-              </Stack>
+      {!Boolean(rows?.length) && (
+        <Stack
+          sx={{
+            width: "100%",
+            height: "100%",
+            minHeight: 200,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Stack>
+            <Typography variant="h6" color={SECONDARY[400]}>
+              No data available
+            </Typography>
           </Stack>
-        )}
+        </Stack>
+      )}
     </TableContainer>
   );
 }
