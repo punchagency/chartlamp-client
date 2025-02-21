@@ -63,6 +63,7 @@ export interface ReportsFilter {
 export interface NameOfDiseaseByIcdCode {
   icdCode: string;
   nameOfDisease: string;
+  summary?: string;
 }
 
 export interface ReportsDetail {

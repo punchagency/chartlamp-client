@@ -2,7 +2,13 @@ import { ReportsDetail } from "@/interface";
 import { SECONDARY, pxToRem } from "@/theme";
 import { Stack, Typography } from "@mui/material";
 
-export default function GeneralTab({ report }: { report: ReportsDetail }) {
+export default function GeneralTab({
+  report,
+  chartNote,
+}: {
+  report: ReportsDetail;
+  chartNote: string;
+}) {
   return (
     <Stack
       sx={{
@@ -22,7 +28,7 @@ export default function GeneralTab({ report }: { report: ReportsDetail }) {
           color={SECONDARY[400]}
           lineHeight={pxToRem(19.2)}
         >
-          {report?.medicalNote}
+          {chartNote}
         </Typography>
       </Stack>
       {/* <Stack gap={pxToRem(8)}>
