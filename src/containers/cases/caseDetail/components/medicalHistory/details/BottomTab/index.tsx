@@ -1,12 +1,13 @@
+import { DocumentDetail, ReportsDetail } from "@/interface";
 import { NEUTRAL, SECONDARY, pxToRem } from "@/theme";
 import { Box, Stack } from "@mui/material";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
-import React from "react";
+import { useSearchParams } from "next/navigation";
+import React, { useMemo } from "react";
+import CommentTab from "./CommentTab";
 import GeneralTab from "./GeneralTab";
 import MedicalTab from "./MedicalTab";
-import CommentTab from "./CommentTab";
-import { DocumentDetail, ReportsDetail } from "@/interface";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -56,11 +57,25 @@ export default function BottomTab({
   sourceFile: DocumentDetail | undefined;
   reportIndex: number;
 }) {
+  const searchParams = useSearchParams();
+
+  const icdCodeParam = searchParams.get("icd-code");
   const [value, setValue] = React.useState(0);
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
   };
+
+  const chartNote = useMemo(() => {
+    if (!icdCodeParam) return report.medicalNote;
+    if (!report.nameOfDiseaseByIcdCode) return report.medicalNote;
+    const cls = report.nameOfDiseaseByIcdCode.find(
+      (item) => item.icdCode === icdCodeParam
+    );
+    if (!cls) return report.medicalNote;
+    return cls?.summary || report.medicalNote;
+  }, [report]);
+
   return (
     <Stack>
       <Box
@@ -86,7 +101,7 @@ export default function BottomTab({
         </Tabs>
       </Box>
       <CustomTabPanel value={value} index={0}>
-        <GeneralTab report={report} />
+        <GeneralTab report={report} chartNote={chartNote} />
       </CustomTabPanel>
       <CustomTabPanel value={value} index={1}>
         <MedicalTab report={report} sourceFile={sourceFile} />

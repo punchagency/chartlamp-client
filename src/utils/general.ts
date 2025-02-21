@@ -1,6 +1,7 @@
 import {
   DiseaseClass,
   ImageType,
+  ImageTypeTwo,
   MapViewFilter,
   ReportsDetailWithBodyPart,
   ReportsFilter,
@@ -397,4 +398,16 @@ export function getComparator<Key extends keyof any>(
   return order === "desc"
     ? (a, b) => descendingComparator(a, b, orderBy)
     : (a, b) => -descendingComparator(a, b, orderBy);
+}
+
+export function ensureUniqueImages(images: ImageTypeTwo[]): ImageTypeTwo[] {
+  const uniqueImagesMap = new Map<string, ImageTypeTwo>();
+
+  for (const image of images) {
+    if (!uniqueImagesMap.has(image.fileName)) {
+      uniqueImagesMap.set(image.fileName, image);
+    }
+  }
+
+  return Array.from(uniqueImagesMap.values());
 }

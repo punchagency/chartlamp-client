@@ -179,9 +179,15 @@ export default function MapView({ caseDetail, loading }: MapViewProps) {
       </Stack>
       <Stack flex={1}>
         <Stack flex={1}>
-          {!loading && caseDetail && caseDetail?.reports.length > 0 && getView}
+          {!loading &&
+            caseDetail &&
+            caseDetail?.reports.length > 0 &&
+            caseDetail.cronStatus === "processed" &&
+            getView}
         </Stack>
-        {(!Boolean(caseDetail?.reports.length) || loading) && (
+        {(!Boolean(caseDetail?.reports.length) ||
+          loading ||
+          caseDetail?.cronStatus !== "processed") && (
           <Stack
             sx={{
               width: "100%",

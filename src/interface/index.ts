@@ -63,6 +63,7 @@ export interface ReportsFilter {
 export interface NameOfDiseaseByIcdCode {
   icdCode: string;
   nameOfDisease: string;
+  summary?: string;
 }
 
 export interface ReportsDetail {
@@ -210,4 +211,13 @@ export interface InvitationDetail {
 export interface UsersAndInvitations {
   users: UserDetail[];
   invitations: InvitationDetail[];
+}
+
+export interface DashboardClaimRelatedReports {
+  case: string;
+  caseNumber: string;
+  report: string;
+  nameOfDisease: string;
+  amountSpent: string;
+  icdCode: string;
 }

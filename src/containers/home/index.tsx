@@ -72,7 +72,7 @@ export default function HomePageContainer() {
             ))}
             <Grid item xs={12} md={12}>
               <ClaimRelated
-                claimRelatedReports={claimRelatedReports.slice(0, 3)}
+                claimRelatedReports={claimRelatedReports}
               />
             </Grid>
             <Grid item xs={12} md={recentlyJoined.length ? 8 : 12}>

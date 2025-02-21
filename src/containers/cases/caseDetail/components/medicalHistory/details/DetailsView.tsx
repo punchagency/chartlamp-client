@@ -204,19 +204,16 @@ export default function DetailsView({ caseDetail, tagsArray }: MapViewProps) {
           alignItems={"center"}
           gap={pxToRem(4)}
           sx={{ cursor: "pointer" }}
+          onClick={() =>
+            router.push(
+              activeYearInViewParam
+                ? `/dashboard/case/${caseDetail._id}/${CaseDetailEnum.medicalHistory}?view=${MapViewEnum.mapView}&activeYearInView=${activeYearInViewParam}`
+                : `/dashboard/case/${caseDetail._id}/${CaseDetailEnum.medicalHistory}?view=${MapViewEnum.mapView}`
+            )
+          }
         >
           <BackIcon />
-          <Typography
-            variant="subtitle2"
-            color={SECONDARY[300]}
-            onClick={() =>
-              router.push(
-                activeYearInViewParam
-                  ? `/dashboard/case/${caseDetail._id}/${CaseDetailEnum.medicalHistory}?view=${MapViewEnum.mapView}&activeYearInView=${activeYearInViewParam}`
-                  : `/dashboard/case/${caseDetail._id}/${CaseDetailEnum.medicalHistory}?view=${MapViewEnum.mapView}`
-              )
-            }
-          >
+          <Typography variant="subtitle2" color={SECONDARY[300]}>
             Go back to map view
           </Typography>
         </Stack>

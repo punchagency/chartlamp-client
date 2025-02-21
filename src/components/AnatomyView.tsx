@@ -1,12 +1,13 @@
 import { MapViewEnum } from "@/containers/cases/caseDetail/constants";
 import { ImageType, ImageTypeTwo } from "@/interface";
 import { pxToRem } from "@/theme";
+import { ensureUniqueImages } from "@/utils/general";
 import { Box, Stack } from "@mui/material";
-import Drift from "drift-zoom";
 import { AnyKindOfDictionary } from "lodash";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import pLimit from "p-limit";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 export default function AnatomyView({
   images,
@@ -77,27 +78,34 @@ export default function AnatomyView({
     }
   };
 
+  const uniqueImages = useMemo(() => ensureUniqueImages(images), [images]);
+
   useEffect(() => {
     const fetchSVGs = async () => {
       const svgs: { [key: string]: string } = {};
-      await Promise.all(
-        images.map(async (item, index) => {
-          try {
-            const url = getImageUrl(item.fileName);
-            const response = await fetch(url);
-            const responseText = await response.text();
-            if (!responseText.includes("NoSuchKey")) {
-              svgs[item.fileName] = responseText;
-            } else {
-              console.log(
-                "Image not found",
-                `${index} - ${item.fileName} - ${url}`
-              );
-            }
-          } catch (error) {
-            console.log("responseError", error, item.fileName);
+      const limit = pLimit(5);
+
+      const fetchImage = async (item: ImageType, index: number) => {
+        try {
+          const url = getImageUrl(item.fileName);
+          const response = await fetch(url);
+          const responseText = await response.text();
+          if (!responseText.includes("NoSuchKey")) {
+            svgs[item.fileName] = responseText;
+          } else {
+            console.log(
+              "Image not found",
+              `${index} - ${item.fileName} - ${url}`
+            );
           }
-        })
+        } catch (error) {
+          console.log("responseError", error, item.fileName);
+        }
+      };
+
+      await Promise.all(
+        // uniqueImages.map((item, index) => fetchImage(item, index))
+        uniqueImages.map((item, index) => limit(() => fetchImage(item, index)))
       );
       setSvgContents(svgs);
     };
@@ -105,7 +113,11 @@ export default function AnatomyView({
     if (images.length) {
       fetchSVGs();
     }
-  }, [images, viewParam]);
+  }, [images]);
+
+  useEffect(() => {
+    console.log("svgContents 1", svgContents);
+  }, [svgContents]);
 
   return (
     <Stack
@@ -140,8 +152,8 @@ export default function AnatomyView({
           objectPosition="none"
           priority={true}
         />
-        {Boolean(images?.length) &&
-          images?.map((item: ImageType, index: number) => (
+        {Boolean(uniqueImages?.length) &&
+          uniqueImages?.map((item: ImageType, index: number) => (
             // <Box
             //   key={index}
             //   sx={{
@@ -157,8 +169,8 @@ export default function AnatomyView({
               onClick={(e) => {
                 const preferredIndex = handleClick(e);
                 if (!preferredIndex) return;
-                console.log("preferredIndex 1", images[preferredIndex]);
-                if (onPartSelect) onPartSelect(images[preferredIndex]);
+                console.log("preferredIndex 1", uniqueImages[preferredIndex]);
+                if (onPartSelect) onPartSelect(uniqueImages[preferredIndex]);
               }}
               sx={{
                 position: "absolute",

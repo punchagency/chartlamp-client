@@ -1,6 +1,6 @@
 "use client";
 
-import { CaseDetail } from "@/interface";
+import { CaseDetail, DashboardClaimRelatedReports } from "@/interface";
 import axiosInstance, { endpoints } from "@/lib/axios";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -8,7 +8,9 @@ import { useEffect, useState } from "react";
 export function useDashboard() {
   const pathname = usePathname();
   const [stats, setStats] = useState([]);
-  const [claimRelatedReports, setClaimRelatedReports] = useState([]);
+  const [claimRelatedReports, setClaimRelatedReports] = useState<
+    DashboardClaimRelatedReports[]
+  >([]);
   const [mostVisitedCases, setMostVisitedCases] = useState([]);
   const [recentlyJoined, setRecentlyJoined] = useState([]);
   const [lastViewed, setlastViewed] = useState<CaseDetail | null>(null);

@@ -20,6 +20,7 @@ interface Data {
   _id: string;
   caseNumber: string;
   plaintiff: string;
+  createdBy: string;
   dateOfClaim: string;
   claimStatus: string;
   actionRequired: string;
@@ -73,6 +74,12 @@ const headCells: readonly HeadCell[] = [
     align: "center",
   },
   {
+    id: "createdBy",
+    label: "Created By",
+    numeric: false,
+    align: "center",
+  },
+  {
     id: "dateOfClaim",
     label: "Date of Claim",
     numeric: false,
@@ -112,6 +119,7 @@ function createData(
   _id: string,
   caseNumber: string,
   plaintiff: string,
+  createdBy: string,
   dateOfClaim: string,
   claimStatus: string,
   actionRequired: string,
@@ -123,6 +131,7 @@ function createData(
     _id,
     caseNumber,
     plaintiff,
+    createdBy,
     dateOfClaim: new Date(dateOfClaim),
     claimStatus,
     actionRequired,
@@ -182,6 +191,7 @@ export function useCases() {
       caseNumber,
       plaintiff,
       dateOfClaim,
+      user,
       claimStatus,
       actionRequired,
       targetCompletion,
@@ -192,6 +202,7 @@ export function useCases() {
         _id,
         caseNumber,
         plaintiff,
+        user.name,
         dateOfClaim,
         claimStatus,
         actionRequired,

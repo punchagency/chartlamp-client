@@ -237,6 +237,9 @@ export default function CasesTable() {
                     {row.plaintiff}
                   </StyledTableCell>
                   <StyledTableCell align="center">
+                    {row.createdBy}
+                  </StyledTableCell>
+                  <StyledTableCell align="center">
                     {formatDate(row.dateOfClaim)}
                   </StyledTableCell>
                   <StyledTableCell
