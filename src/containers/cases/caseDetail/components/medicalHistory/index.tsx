@@ -234,9 +234,13 @@ export default function MapView({ caseDetail, loading }: MapViewProps) {
           zIndex: 100,
         }}
       >
-        {updatedCaseDetail && (
-          <TimeLineView view={view} caseDetail={updatedCaseDetail} />
-        )}
+        {!loading &&
+          caseDetail &&
+          caseDetail?.reports.length > 0 &&
+          caseDetail.cronStatus === "processed" &&
+          updatedCaseDetail && (
+            <TimeLineView view={view} caseDetail={updatedCaseDetail} />
+          )}
       </Stack>
     </Stack>
   );

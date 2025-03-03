@@ -8,9 +8,10 @@ import {
 import { customTagModalVar } from "@/state/modal";
 import { NEUTRAL, SECONDARY, pxToRem } from "@/theme";
 import { IconButton, Stack, Typography } from "@mui/material";
+import Skeleton from "@mui/material/Skeleton";
 import Tooltip from "@mui/material/Tooltip";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CaseDetailEnum, MapViewEnum } from "../../../constants";
 import DiseaseTag from "../../DiseaseTags";
 import { QuestMarkIcon } from "../../svg/QuestMarkIcon";
@@ -56,6 +57,8 @@ export default function DetailsView({ caseDetail, tagsArray }: MapViewProps) {
     getDcTagMapping,
   } = useCaseDetailsView();
   const [diseaseName, setDiseaseName] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isClassified, setIsClassified] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -80,56 +83,91 @@ export default function DetailsView({ caseDetail, tagsArray }: MapViewProps) {
     return preferredClassification;
   }, [caseDetail, partIdParam, icdCodeParam]);
 
-  const handlePartFilter = useCallback(async () => {
-    const defaultDiseaseName = caseDetail?.report?.nameOfDisease;
-    try {
-      if (!defaultDiseaseName) return;
-      setDiseaseName(defaultDiseaseName);
-      // if (!partIdParam) return;
-      if (!Boolean(defaultDiseaseName.split(",").length > 1)) return;
-      const diseaseClass = caseDetail?.report.classification.find((item) => {
+  const handlePartFilter = async () => {
+    const report = caseDetail?.report;
+    if (!report) return;
+
+    const defaultDiseaseName = report.nameOfDisease;
+    if (!defaultDiseaseName) return;
+
+    setDiseaseName(defaultDiseaseName);
+
+    // If there’s only one disease, no need to filter further.
+    const hasMultipleDiseases = defaultDiseaseName.split(",").length > 1;
+    if (!hasMultipleDiseases) return;
+
+    const classification = report.classification || [];
+
+    // Helper to find the relevant disease classification
+    const findDiseaseClass = () => {
+      return classification.find((item) => {
         if (partIdParam) {
-          if (!item.images) return false;
-          const selectedImage = item.images.find(
-            (imgItem) => imgItem._id === partIdParam
+          const selectedImage = item.images?.find(
+            (img) => img._id === partIdParam
           );
           if (selectedImage) return true;
         }
-        if (icdCodeParam) {
-          if (item.icdCode === icdCodeParam) return true;
+        if (icdCodeParam && item.icdCode === icdCodeParam) {
+          return true;
         }
         return false;
       });
-      if (!diseaseClass) return;
+    };
 
-      const selectedIcdCode = diseaseClass.icdCode;
-      let nameOfDiseaseByIcdCode = caseDetail?.report?.nameOfDiseaseByIcdCode;
-      // console.log("nameOfDiseaseByIcdCode", nameOfDiseaseByIcdCode);
-      if (nameOfDiseaseByIcdCode) {
-        const name = getName(selectedIcdCode, nameOfDiseaseByIcdCode);
-        if (name) return;
-      }
-      const partIcdCodes = caseDetail?.report.classification.map(
-        (item) => item.icdCode
-      );
-      nameOfDiseaseByIcdCode = await getStreamlinedDiseaseName({
-        icdCodes: partIcdCodes,
+    const diseaseClass = findDiseaseClass();
+    if (!diseaseClass) return;
+
+    const selectedIcdCode = diseaseClass.icdCode;
+
+    // Check if disease name is already mapped by ICD code
+    const existingName = getName(
+      selectedIcdCode,
+      report.nameOfDiseaseByIcdCode || []
+    );
+    if (existingName) {
+      setDiseaseName(existingName);
+      setIsClassified(true);
+      return;
+    }
+
+    // Collect other part ICD codes (excluding current one)
+    const otherPartIcdCodes = classification
+      .filter((item) => item.icdCode !== icdCodeParam)
+      .map((item) => item.icdCode);
+
+    try {
+      if (isLoading) return;
+      setIsLoading(true);
+      const result = await getStreamlinedDiseaseName({
+        icdCodes: [icdCodeParam as string],
+        // icdCodes: [icdCodeParam as string, ...otherPartIcdCodes],
         diseaseNames: defaultDiseaseName,
         caseId: caseDetail._id,
-        reportId: caseDetail?.report._id,
+        reportId: report._id,
       });
-      if (nameOfDiseaseByIcdCode) {
-        getName(selectedIcdCode, nameOfDiseaseByIcdCode);
-        // refetchCaseDetailsWithoutLoadingVar(true);
-      } else setDiseaseName(defaultDiseaseName);
-    } catch {
+      setIsLoading(false);
+
+      if (result?.length) {
+        const newName = getName(selectedIcdCode, result);
+        if (newName) {
+          setDiseaseName(newName);
+          setIsClassified(true);
+          return;
+        }
+      }
+
+      // Fallback to default name if no classification found
+      setDiseaseName(defaultDiseaseName);
+    } catch (error) {
       setDiseaseName(defaultDiseaseName);
     }
-  }, [caseDetail, partIdParam]);
+  };
 
   useEffect(() => {
-    handlePartFilter();
-  }, [partIdParam, caseDetail]);
+    if (icdCodeParam && caseDetail) {
+      handlePartFilter();
+    }
+  }, [icdCodeParam, partIdParam, caseDetail]);
 
   useEffect(() => {
     if (
@@ -151,9 +189,12 @@ export default function DetailsView({ caseDetail, tagsArray }: MapViewProps) {
     selectedIcdCode: string,
     nameOfDiseaseByIcdCode: NameOfDiseaseByIcdCode[]
   ) => {
-    const selectedDisease = nameOfDiseaseByIcdCode.find(
-      (item) => item.icdCode == selectedIcdCode
-    );
+    const selectedDisease = nameOfDiseaseByIcdCode.find((item) => {
+      if (item.icdCode == selectedIcdCode) return true;
+      const initialCode = icdCodeParam && icdCodeParam.split(".")[0];
+      if (initialCode && item.icdCode.includes(initialCode)) return true;
+      return false;
+    });
     if (selectedDisease) {
       setDiseaseName(selectedDisease?.nameOfDisease);
       return selectedDisease?.nameOfDisease;
@@ -228,13 +269,21 @@ export default function DetailsView({ caseDetail, tagsArray }: MapViewProps) {
             py: pxToRem(8),
           }}
         >
-          <Typography
-            variant="h1"
-            fontSize={pxToRem(48)}
-            color={SECONDARY[500]}
-          >
-            {diseaseName || caseDetail?.report?.nameOfDisease}
-          </Typography>
+          {isClassified ? (
+            <Typography
+              variant="h1"
+              fontSize={pxToRem(48)}
+              color={SECONDARY[500]}
+            >
+              {diseaseName || caseDetail?.report?.nameOfDisease}
+            </Typography>
+          ) : (
+            <Stack>
+              <Skeleton />
+              <Skeleton animation="wave" />
+              <Skeleton animation={false} />
+            </Stack>
+          )}
         </Stack>
         <Stack
           sx={{

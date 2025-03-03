@@ -1,4 +1,8 @@
-import { DocumentDetail, ReportsDetail } from "@/interface";
+import {
+  DocumentDetail,
+  NameOfDiseaseByIcdCode,
+  ReportsDetail,
+} from "@/interface";
 import { NEUTRAL, SECONDARY, pxToRem } from "@/theme";
 import { Box, Stack } from "@mui/material";
 import Tab from "@mui/material/Tab";
@@ -66,14 +70,38 @@ export default function BottomTab({
     setValue(newValue);
   };
 
+  const getCls = (nameOfDiseaseByIcdCode: NameOfDiseaseByIcdCode[]) => {
+    const cls = nameOfDiseaseByIcdCode.find((item) => {
+      if (item.icdCode == icdCodeParam) return true;
+      const initialCode = icdCodeParam && icdCodeParam.split(".")[0];
+      if (initialCode && item.icdCode.includes(initialCode)) return true;
+      return false;
+    });
+    return cls;
+  };
+
   const chartNote = useMemo(() => {
     if (!icdCodeParam) return report.medicalNote;
     if (!report.nameOfDiseaseByIcdCode) return report.medicalNote;
-    const cls = report.nameOfDiseaseByIcdCode.find(
-      (item) => item.icdCode === icdCodeParam
-    );
+    const cls = getCls(report.nameOfDiseaseByIcdCode);
     if (!cls) return report.medicalNote;
     return cls?.summary || report.medicalNote;
+  }, [report]);
+
+  const cls = useMemo(() => {
+    if (!icdCodeParam) return null;
+    if (!report.nameOfDiseaseByIcdCode) return null;
+    const cls = getCls(report.nameOfDiseaseByIcdCode);
+    if (!cls) return null;
+    return cls || null;
+  }, [report]);
+
+  const pageNumber = useMemo(() => {
+    if (!icdCodeParam) return 0;
+    if (!report.nameOfDiseaseByIcdCode) return 0;
+    const cls = getCls(report.nameOfDiseaseByIcdCode);
+    if (!cls) return 0;
+    return cls?.pageNumber || 0;
   }, [report]);
 
   return (
@@ -101,7 +129,14 @@ export default function BottomTab({
         </Tabs>
       </Box>
       <CustomTabPanel value={value} index={0}>
-        <GeneralTab report={report} chartNote={chartNote} />
+        <GeneralTab
+          report={report}
+          chartNote={chartNote}
+          excerpt={cls?.excerpt}
+          diseaseName={cls?.nameOfDisease}
+          icdCode={cls?.icdCode}
+          pageNumber={pageNumber}
+        />
       </CustomTabPanel>
       <CustomTabPanel value={value} index={1}>
         <MedicalTab report={report} sourceFile={sourceFile} />

@@ -395,8 +395,8 @@ export default function CasesTable() {
           onClose={() => handleConfirmationModalChange(false)}
           onDelete={async () => {
             if (selectedCaseId) {
-              await handleDeleteCase(selectedCaseId);
               handleConfirmationModalChange(false);
+              await handleDeleteCase(selectedCaseId);
             }
           }}
           type="case"

@@ -286,39 +286,41 @@ export default function useMedicalHistory({
     };
     const uniqueFileNames = new Set();
     bodyParts.forEach((part) => {
-      if (part.images.length) {
-        part.images.forEach((image) => {
-          if (uniqueFileNames.has(image.fileName)) return;
-          uniqueFileNames.add(image.fileName);
-          if (mapping[image.categoryName]) {
-            mapping[image.categoryName].push({
-              ...image,
-              icdCode: part.icdCode,
-              reportId: part.reportId,
-              classificationId: part?._id,
-            });
-          } else {
-            mapping[image.categoryName] = [
-              {
+      if (/[a-zA-Z0-9]/.test(part.icdCode)) {
+        if (part.images.length) {
+          part.images.forEach((image) => {
+            if (uniqueFileNames.has(image.icdCode)) return;
+            uniqueFileNames.add(image.icdCode);
+            if (mapping[image.categoryName]) {
+              mapping[image.categoryName].push({
                 ...image,
                 icdCode: part.icdCode,
                 reportId: part.reportId,
                 classificationId: part?._id,
-              },
-            ];
-          }
-        });
-      } else {
-        if (uniqueFileNames.has(part.bodyParts)) return;
-        uniqueFileNames.add(part.bodyParts);
-        mapping.others.push({
-          _id: "",
-          fileName: part.bodyParts,
-          categoryName: "",
-          icdCode: part.icdCode,
-          reportId: part.reportId,
-          classificationId: part?._id,
-        });
+              });
+            } else {
+              mapping[image.categoryName] = [
+                {
+                  ...image,
+                  icdCode: part.icdCode,
+                  reportId: part.reportId,
+                  classificationId: part?._id,
+                },
+              ];
+            }
+          });
+        } else {
+          if (uniqueFileNames.has(part.icdCode)) return;
+          uniqueFileNames.add(part.icdCode);
+          mapping.others.push({
+            _id: "",
+            fileName: part.bodyParts,
+            categoryName: "",
+            icdCode: part.icdCode,
+            reportId: part.reportId,
+            classificationId: part?._id,
+          });
+        }
       }
     });
     // console.log("mapping", mapping);
@@ -350,19 +352,18 @@ export default function useMedicalHistory({
     if (!isMapView) handleOnLoadDetailsView();
   }, [caseDetail, filterValues, isMapView, reportIndex]);
 
-useEffect(() => {
-  setFilterValues((prev) => ({
-    ...prev,
-    bodyPart: partIdParam || "",
-    icdCode: icdCodeParam || "",
-  }));
+  useEffect(() => {
+    setFilterValues((prev) => ({
+      ...prev,
+      bodyPart: partIdParam || "",
+      icdCode: icdCodeParam || "",
+    }));
 
-  // console.log("Updated filter values", {
-  //   bodyPart: partIdParam || "",
-  //   icdCode: icdCodeParam || "",
-  // });
-}, [partIdParam, icdCodeParam]);
-
+    // console.log("Updated filter values", {
+    //   bodyPart: partIdParam || "",
+    //   icdCode: icdCodeParam || "",
+    // });
+  }, [partIdParam, icdCodeParam]);
 
   // useEffect(() => {
   //   if (activeYearInViewParam) activeYearInViewVar(+activeYearInViewParam);
