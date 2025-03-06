@@ -140,6 +140,8 @@ export default function DiseaseClassificationListView({
     [caseDcTags, selectedTag, mappingByCategory]
   );
 
+  // console.log("mappingByCategory", mappingByCategory);
+
   return (
     <Stack
       sx={{

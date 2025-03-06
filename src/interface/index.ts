@@ -64,6 +64,8 @@ export interface NameOfDiseaseByIcdCode {
   icdCode: string;
   nameOfDisease: string;
   summary?: string;
+  excerpt?: string;
+  pageNumber?: number;
 }
 
 export interface ReportsDetail {

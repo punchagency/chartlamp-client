@@ -115,9 +115,9 @@ export default function AnatomyView({
     }
   }, [images]);
 
-  useEffect(() => {
-    console.log("svgContents 1", svgContents);
-  }, [svgContents]);
+  // useEffect(() => {
+  //   console.log("svgContents 1", svgContents);
+  // }, [svgContents]);
 
   return (
     <Stack
