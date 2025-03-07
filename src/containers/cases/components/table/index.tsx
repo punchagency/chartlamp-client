@@ -34,6 +34,7 @@ import { RetryIcon } from "../svgs/RetryIcon";
 import StarIcon from "../svgs/StarIcon";
 import StarIconFilled from "../svgs/StarIconFilled";
 import UploadcaseModal from "../uploadCase";
+import EditCaseDetails from "./EditCaseDetails";
 import TopNav from "./TopNav";
 import CaseCalender from "./calender/CaseCalender";
 import Filter from "./filter";
@@ -121,8 +122,11 @@ export default function CasesTable() {
     rows,
     archivedCasesLength,
     loading,
+    filter,
     openChangeDateModal,
     selectedCaseNumber,
+    openCaseDetailsModal,
+    selectedCase,
     handleChangePage,
     handleChangeRowsPerPage,
     refetch,
@@ -140,6 +144,7 @@ export default function CasesTable() {
     handleTargetComModalChange,
     createSortHandler,
     formatDate,
+    handleCaseDetailsModalChange,
   } = useCases();
 
   return (
@@ -183,7 +188,15 @@ export default function CasesTable() {
             }}
           >
             <TableRow>
-              <StyledTableCell></StyledTableCell>
+              <StyledTableCell
+                onClick={() => handleSelectFilter("showFav", "")}
+              >
+                <Tooltip title="Show favorites" arrow placement="top">
+                  <IconButton>
+                    {!filter.showFav ? <StarIcon /> : <StarIconFilled />}
+                  </IconButton>
+                </Tooltip>
+              </StyledTableCell>
               {headCells.map((headCell) => (
                 <StyledTableCell
                   key={headCell.id}
@@ -266,9 +279,9 @@ export default function CasesTable() {
                     }}
                   >
                     {formatDate(row.targetCompletion)}
-                    <IconButton>
+                    {/* <IconButton>
                       <EditIcon />
-                    </IconButton>
+                    </IconButton> */}
                   </StyledTableCell>
                   <StyledTableCell align="center">
                     {tab === CasesEnum.archive ? (
@@ -302,6 +315,17 @@ export default function CasesTable() {
                         // gap={pxToRem(4)}
                       >
                         <IconContainer
+                          tooltip="Edit"
+                          sx={actionStyles}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCaseDetailsModalChange(true, row._id);
+                          }}
+                        >
+                          <EditIcon />
+                        </IconContainer>
+
+                        <IconContainer
                           tooltip="Delete"
                           sx={actionStyles}
                           onClick={(e) => {
@@ -311,6 +335,7 @@ export default function CasesTable() {
                         >
                           <DeleteIcon />
                         </IconContainer>
+
                         <Tooltip title="Archive">
                           <IconContainer
                             tooltip="Archive"
@@ -405,14 +430,16 @@ export default function CasesTable() {
       </AppDialog>
 
       <AppDialog
-        open={openChangeDateModal}
-        onClose={() => handleTargetComModalChange(false)}
+        open={openCaseDetailsModal}
+        onClose={() => handleCaseDetailsModalChange(false)}
       >
-        {selectedCaseNumber && (
-          <CaseCalender
+        {selectedCaseNumber && selectedCase && selectedCaseId && (
+          <EditCaseDetails
             selectedCaseNumber={selectedCaseNumber}
-            onDateChange={handleTargetCompletionChange}
-            onClose={() => handleTargetComModalChange(true)}
+            onClose={() => handleCaseDetailsModalChange(false)}
+            plaintiff={selectedCase?.plaintiff}
+            targetCompletion={selectedCase?.targetCompletion}
+            caseId={selectedCaseId}
           />
         )}
       </AppDialog>

@@ -146,10 +146,13 @@ export function useCases() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const defaultUpload = searchParams.get("upload") === "true";
+
   const [caseList, setCaseList] = useState<CaseDetail[]>([]);
   const [loading, setLoading] = useState(false);
   const [openConfirmation, setOpenConfirmation] = useState(false);
   const [openChangeDateModal, setOpenChangeDateModal] = useState(false);
+  const [openCaseDetailsModal, setOpenCaseDetailsModal] = useState(false);
+
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
   const [selectedCaseNumber, setSelectedCaseNumber] = useState<string | null>(
@@ -164,6 +167,7 @@ export function useCases() {
 
   const [filter, setFilter] = useState({
     claimStatus: "",
+    showFav: false,
   });
 
   const [optimisticCases, updateOptimisticMessage] = useOptimistic(
@@ -227,7 +231,9 @@ export function useCases() {
       let url = endpoints.case.userCases;
       if (filter.claimStatus) {
         url += `?claimStatus=${filter.claimStatus}`;
-        // console.log("getCases", url);
+      }
+      if (filter.showFav) {
+        url += `?showFav=${filter.showFav}`;
       }
       const response = await axiosInstance.get(url);
       setCaseList(response.data);
@@ -238,8 +244,12 @@ export function useCases() {
     }
   }, [filter]);
 
-  const handleSelectFilter = (fieldName: string, selectedVal: string) => {
-    setFilter({ ...filter, [fieldName]: selectedVal });
+  const handleSelectFilter = (fieldName: string, selectedVal: any) => {
+    if (fieldName === "showFav") {
+      setFilter({ ...filter, [fieldName]: !filter.showFav });
+    } else {
+      setFilter({ ...filter, [fieldName]: selectedVal });
+    }
   };
 
   const handleFavorite = (e: any, id: string, isFavorite: boolean) => {
@@ -412,6 +422,19 @@ export function useCases() {
     setOpenChangeDateModal(status);
   };
 
+  const handleCaseDetailsModalChange = (status: boolean, caseId?: string) => {
+    if (caseId) {
+      setSelectedCaseId(caseId);
+      const caseNumber = filteredCases.find(
+        (c) => c._id === caseId
+      )?.caseNumber;
+      if (!caseNumber) return;
+      setSelectedCaseNumber(caseNumber);
+    }
+    if (!status) refetch();
+    setOpenCaseDetailsModal(status);
+  };
+
   const handleRequestSort = (
     event: React.MouseEvent<unknown>,
     property: keyof Data
@@ -436,6 +459,13 @@ export function useCases() {
     (property: keyof Data) => (event: React.MouseEvent<unknown>) => {
       handleRequestSort(event, property);
     };
+
+  const selectedCase = useMemo(() => {
+    if (caseList.length) {
+      const iCase = caseList.find((item) => item._id === selectedCaseId);
+      return iCase;
+    }
+  }, [caseList, selectedCaseId]);
 
   useEffect(() => {
     getCases();
@@ -467,9 +497,11 @@ export function useCases() {
     filteredCases,
     openChangeDateModal,
     selectedCaseNumber,
+    openCaseDetailsModal,
+    selectedCase,
+    filter,
     handleChangePage,
     handleChangeRowsPerPage,
-    setOpenChangeDateModal,
     getCases,
     refetch,
     handleSelectFilter,
@@ -486,5 +518,6 @@ export function useCases() {
     handleTargetComModalChange,
     createSortHandler,
     formatDate,
+    handleCaseDetailsModalChange,
   };
 }

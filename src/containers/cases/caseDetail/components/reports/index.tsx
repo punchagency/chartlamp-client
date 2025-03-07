@@ -1,12 +1,11 @@
-import { ReportsDetail, ReportsDetailWithBodyPart, TagsType, UserDetail } from "@/interface";
+import { ReportsDetailWithBodyPart, UserDetail } from "@/interface";
 import { NEUTRAL, pxToRem } from "@/theme";
 import { Stack } from "@mui/material";
-import { useMemo, useState } from "react";
 import useTags from "../../hooks/useTags";
 import TopNav from "../TopNav";
 import ActionsTab from "../actionsTab";
-import ReportTable from "./table";
 import useReport from "./hook/useReport";
+import ReportTable from "./table";
 
 interface ReportProps {
   reports: ReportsDetailWithBodyPart[] | undefined;
@@ -24,10 +23,9 @@ export default function Report({
   plaintiff,
 }: ReportProps) {
   const { tagsArray } = useTags();
-  const { filteredReports, handleSelect } = useReport({
+  const { filteredReports, csvdata, handleSelect } = useReport({
     reports: reports || [],
   });
-
 
   return (
     <Stack
@@ -60,6 +58,7 @@ export default function Report({
           handleSearch={(val: string) => handleSelect("searchVal", val)}
           handleTagSelect={(val) => handleSelect("tag", val)}
           tagsArray={tagsArray}
+          csvdata={{ data: csvdata, fileName: `${plaintiff} - ${caseNumber}` }}
         />
       </Stack>
       <ReportTable reportData={filteredReports} loading={loading} />

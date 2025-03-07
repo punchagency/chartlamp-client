@@ -1,13 +1,12 @@
 import {
   CaseDcTagMapping,
-  MapViewFilter,
   ReportsDetailWithBodyPart,
   ReportsFilter,
 } from "@/interface";
 import axiosInstance, { endpoints } from "@/lib/axios";
 import { filterReportsByDcForReporting } from "@/utils/general";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 
 export default function useReport({
@@ -24,7 +23,7 @@ export default function useReport({
     dcs: [],
     icdCodes: [],
     searchVal: "",
-    isFiltered: false
+    isFiltered: false,
   });
 
   const debounced = useDebouncedCallback((value: string) => {
@@ -72,7 +71,7 @@ export default function useReport({
         setFilterValues({
           ...filterValues,
           [fieldName]: selectedVal,
-          isFiltered: true
+          isFiltered: true,
         });
       }
     }
@@ -106,12 +105,25 @@ export default function useReport({
     };
   };
 
+  const csvdata = useMemo(() => {
+    if (!filteredReports) return [];
+    if (!filteredReports.length) return [];
+    const allIcdCodes = filteredReports.flatMap((item) => item.icdCodes);
+    const uniqueIcdCodes = Array.from(new Set(allIcdCodes));
+    return uniqueIcdCodes.map((icdCode) => {
+      return {
+        icdCode,
+      };
+    });
+  }, [filteredReports]);
+
   useEffect(() => {
     handleFilterReports();
   }, [reports, filterValues]);
 
   return {
     filteredReports,
+    csvdata,
     handleSelect,
   };
 }

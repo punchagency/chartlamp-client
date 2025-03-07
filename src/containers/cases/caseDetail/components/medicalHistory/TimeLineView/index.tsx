@@ -200,7 +200,7 @@ export function DetailViewTimeLine({
     <Stack
       direction={"row"}
       alignItems={"center"}
-      justifyContent={"space-between"}
+      justifyContent={"flex-end"}
       sx={{
         width: "100%",
         height: pxToRem(72),
@@ -210,14 +210,14 @@ export function DetailViewTimeLine({
         bottom: 0,
       }}
     >
+
+      <Stack gap={pxToRem(12)} direction={"row"} alignItems={"center"}>
       {caseDetail.report?.dateOfClaim && (
         <Typography variant="subtitle2" color={SECONDARY[400]}>
           {/* 25 March, 2021 */}
           {format(new Date(caseDetail.report.dateOfClaim), "dd MMMM yyyy")}
         </Typography>
       )}
-
-      <Stack gap={pxToRem(12)} direction={"row"} alignItems={"center"}>
         <IconButton onClick={handlePrev}>
           <PrevIcon size={pxToRem(19.2)} />
         </IconButton>

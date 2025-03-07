@@ -125,9 +125,7 @@ export default function ReportTable({ reportData, loading }: TableProps) {
     if (!reportData.length) return [];
     return reportData.map((data) => {
       const nameOfDiseaseByIcdCode = data?.nameOfDiseaseByIcdCode;
-      const icd = nameOfDiseaseByIcdCode
-        ? nameOfDiseaseByIcdCode.map((item) => item?.icdCode).join(", ")
-        : "--";
+      const icd = data?.icdCodes?.length ? data.icdCodes.join(", ") : "--";
       const diseaseNames = nameOfDiseaseByIcdCode
         ? nameOfDiseaseByIcdCode.map((item) => item?.nameOfDisease).join(", ")
         : "--";
