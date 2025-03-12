@@ -11,6 +11,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import CustomTagModal from "../components/customTag";
 import NotesModal from "../components/notesModal";
+import ProgressModal from "../components/progressModal";
 import ShareModal from "../components/share";
 import { CasesEnum } from "../constants";
 import Maintenance from "./components/maintenance";
@@ -20,10 +21,11 @@ import UseNotes from "./components/notes/hooks";
 import Report from "./components/reports";
 import { CaseDetailEnum } from "./constants";
 import { useCaseDetails } from "./hooks";
-import { notesModalVar } from "./state";
+import { notesModalVar, progressModalVar } from "./state";
 
 export default function CaseDetailPageContainer() {
   const notesModalState = useReactiveVar(notesModalVar);
+  const progressModalState = useReactiveVar(progressModalVar);
   const shareModalState = useReactiveVar(shareModalVar);
   const customTagModalState = useReactiveVar(customTagModalVar);
 
@@ -157,6 +159,23 @@ export default function CaseDetailPageContainer() {
           handleAddNote={handleUpdateAddNote}
           loadingNote={loadingCreateNote}
         />
+      </AppDialog>
+      <AppDialog
+        open={
+          Boolean(caseDetail) &&
+          Boolean(caseDetail?.percentageCompletion) &&
+          Boolean(caseDetail?.percentageCompletion !== 100)
+        }
+        onClose={() => progressModalVar(false)}
+      >
+        {caseDetail && (
+          <ProgressModal
+            percentageCompletion={caseDetail?.percentageCompletion}
+            caseNumber={caseDetail.caseNumber}
+            img={caseDetail.user.profilePicture}
+            name={caseDetail.user.name}
+          />
+        )}
       </AppDialog>
     </Stack>
   );

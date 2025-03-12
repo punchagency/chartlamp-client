@@ -211,3 +211,9 @@ body {
 .a-date-range input[type="date"]::-webkit-calendar-picker-indicator {
   display: none;
 }
+
+.status-modal {
+  background: linear-gradient(0deg, #ffffff, #ffffff),
+    linear-gradient(186.48deg, #011716 59.52%, #08bdba 175.75%);
+  background-blend-mode: overlay;
+}

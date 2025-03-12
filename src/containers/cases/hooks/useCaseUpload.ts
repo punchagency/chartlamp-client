@@ -1,9 +1,20 @@
 "use client";
 
+import useUpdateParams from "@/hooks/useUpdateParams";
 import axiosInstance, { endpoints } from "@/lib/axios";
 import { ActionRequired } from "@/types/case";
-import { createParams, filePath, s3Client } from "@/utils/s3";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
+import {
+  AppBucketName,
+  createParams,
+  filePath,
+  getFileKey,
+  s3Client,
+} from "@/utils/s3";
+import {
+  DeleteObjectCommand,
+  HeadObjectCommand,
+  PutObjectCommand,
+} from "@aws-sdk/client-s3";
 import { addDays } from "date-fns";
 import { useFormik } from "formik";
 import { useCallback, useState } from "react";
@@ -24,6 +35,8 @@ export function useCaseUpload({
   caseNumber?: string;
   callBkFn?: () => void;
 }) {
+  const { reloadParams } = useUpdateParams();
+
   const [progress, setProgress] = useState(0);
   const [fileNames, setFileNames] = useState<Array<string>>([]);
   const [attachments, setAttachments] = useState<Array<string>>([]);
@@ -34,35 +47,71 @@ export function useCaseUpload({
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     setIsUploaded(false);
     const filteredFileNames = acceptedFiles.map((file) => file.name);
-    setFileNames(filteredFileNames);
+    setFileNames((prev) => [...prev, ...filteredFileNames]);
+
     for (const file of acceptedFiles) {
       const index = filteredFileNames.findIndex(
         (attachment) => attachment === file.name
       );
       setCurrentIndex(index);
+
       const params = createParams(file);
+      const key = params.Key;
+      let s3Path = filePath(key);
+
+      try {
+        // Check if file already exists in S3
+        await s3Client.send(
+          new HeadObjectCommand({ Bucket: params.Bucket, Key: key })
+        );
+        console.log(`File "${key}" already exists. Adding to attachments.`);
+
+        // Add existing file to attachments
+        setAttachments((prev) => [...prev, s3Path]);
+        continue; // Move to the next file
+      } catch (error: any) {
+        if (error.name !== "NotFound") {
+          console.error("Error checking file existence", error);
+          continue; // Skip to the next file on error
+        }
+      }
+
+      // File doesn't exist, proceed with upload
       const command = new PutObjectCommand(params);
       setProgress(10);
+
       try {
         const data = await s3Client.send(command, {
-          onUploadProgress: (progressEvent: { loaded?: any; total?: any }) => {
-            const { loaded } = progressEvent;
-            const { total } = progressEvent;
-            const percentage = Math.round((loaded / total) * 100);
-            setProgress(percentage);
+          onUploadProgress: (progressEvent: {
+            loaded?: number;
+            total?: number;
+          }) => {
+            if (progressEvent.loaded && progressEvent.total) {
+              const percentage = Math.round(
+                (progressEvent.loaded / progressEvent.total) * 100
+              );
+              setProgress(percentage);
+            }
           },
         } as any);
 
-        if (params.Key && data.$metadata.httpStatusCode === 200) {
-          const s3Path = filePath(params.Key);
-          attachments.push(s3Path);
-          setAttachments(attachments);
+        if (key && data.$metadata.httpStatusCode === 200) {
+          setAttachments((prev) => [...prev, s3Path]); // Add successful upload
           setProgress(0);
+        } else {
+          console.error(
+            `Failed to upload "${key}". Removing from attachments.`
+          );
+          setAttachments((prev) => prev.filter((path) => path !== s3Path)); // Remove failed upload
         }
-      } catch (error) {
-        console.error("Error uploading file", error);
+      } catch (uploadError) {
+        console.error("Error uploading file", uploadError);
+        setAttachments((prev) => prev.filter((path) => path !== s3Path)); // Remove failed upload
       }
+
+      console.log(`onDrop`, { fileNames, attachments });
     }
+
     setIsUploaded(true);
   }, []);
 
@@ -79,6 +128,13 @@ export function useCaseUpload({
     try {
       setIsSubmitting(true);
       const response = await axiosInstance.post(endpoints.case.create, values);
+      if (response.data && response.data._id) {
+        console.log("handleSubmit", response.data);
+        // setActiveCaseId(response.data._id);
+        // setActiveCaseDetails(response.data);
+        // progressModalVar(true);
+        reloadParams({ activeCaseId: response.data._id });
+      }
       setIsSubmitting(false);
       onClose();
     } catch (error) {}
@@ -97,7 +153,28 @@ export function useCaseUpload({
     } catch (error) {}
   };
 
-  const removeFromList = (index: number) => {
+  const deleteFileFromS3 = async (fileKey: string) => {
+    try {
+      const command = new DeleteObjectCommand({
+        Bucket: AppBucketName, // Replace with your actual bucket name
+        Key: fileKey,
+      });
+
+      await s3Client.send(command);
+      console.log(`File "${fileKey}" deleted successfully.`);
+    } catch (error) {
+      console.error("Error deleting file from S3:", error);
+    }
+  };
+
+  const removeFromList = async (index: number) => {
+    const fileUrl = attachments[index];
+    // console.log("fileUrl", fileUrl);
+    const filekey = await getFileKey(fileUrl);
+    // console.log("filekey", filekey);
+    // if(filekey) await deleteFileFromS3(filekey);
+    const filteredFileNames = fileNames.filter((_, i) => i !== index);
+    setFileNames(filteredFileNames);
     const newAttachments = attachments.filter((_, i) => i !== index);
     setAttachments(newAttachments);
   };
@@ -117,11 +194,11 @@ export function useCaseUpload({
       plaintiff: Yup.string().required("Required"),
       caseNumber: Yup.string().required("Required"),
     }),
-    onSubmit: () => {
+    onSubmit: async () => {
       if (caseId) {
         addNewFiles();
       } else {
-        handleSubmit({
+        await handleSubmit({
           ...formik.values,
           documents: attachments,
         });
@@ -146,5 +223,6 @@ export function useCaseUpload({
     addNewFiles,
     removeFromList,
     isUploaded,
+    attachments,
   };
 }

@@ -167,6 +167,7 @@ export interface CaseDetail {
   isFavorite: boolean;
   isArchived: boolean;
   cronStatus: string;
+  percentageCompletion: number;
   documents: DocumentDetail[];
   reports: ReportsDetailWithBodyPart[];
   report: ReportsDetailWithBodyPart;

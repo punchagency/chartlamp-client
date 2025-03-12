@@ -8,6 +8,7 @@ import { useCaseUpload } from "../../hooks/useCaseUpload";
 import { DropAddIcon } from "../svgs/DropAddIcon";
 import { InfoIcon } from "../svgs/InfoIcon";
 import UploadedItemRow from "./UploadedItemRow";
+import { filePath } from "@/utils/s3";
 
 // if input
 // /* Neutral/100 */
@@ -64,6 +65,7 @@ export default function UploadcaseModal({
     isSubmitting,
     currentIndex,
     isUploaded,
+    attachments,
     removeFromList,
   } = useCaseUpload({ onClose, plaintiff, caseNumber, caseId, callBkFn });
 
@@ -187,7 +189,9 @@ export default function UploadcaseModal({
                     key={index}
                     progress={currentIndex === index ? progress : 0}
                     fileName={getFileName(item)}
-                    state={currentIndex <= index && !isUploaded ? "uploading" : "list"}
+                    state={
+                      !attachments.includes(filePath(item)) ? "uploading" : "uploaded"
+                    }
                     removeFromList={() => removeFromList(index)}
                   />
                 ))}
