@@ -4,8 +4,9 @@ import CollapsibleSearch from "@/components/CollapsibleSearch";
 import { UserAvatar } from "@/components/UserAvatar";
 import FilterDrop from "@/containers/cases/components/FilterDrop";
 import { AddIcon } from "@/containers/sidebar/svg/AddIcon";
+import { OptionsType } from "@/interface";
 import { shareModalVar } from "@/state/modal";
-import { NEUTRAL, PRIMARY, pxToRem, GREEN, SECONDARY } from "@/theme";
+import { NEUTRAL, PRIMARY, SECONDARY, pxToRem } from "@/theme";
 import { useReactiveVar } from "@apollo/client";
 import { Divider, Grid, Stack, Typography } from "@mui/material";
 import { useParams } from "next/navigation";
@@ -19,11 +20,9 @@ import {
   notesModalVar,
   showFilterVar,
 } from "../../state";
-import { tagsFilter } from "../medicalHistory/constants";
 import { GridIcon } from "../svg/GridIcon";
 import { ListIcon } from "../svg/ListIcon";
-import PushPinOutlinedIcon from "@mui/icons-material/PushPinOutlined";
-import { OptionsType } from "@/interface";
+import ExportToCSV from "../reports/export";
 
 export enum TableView {
   cases = "cases",
@@ -42,6 +41,7 @@ export default function ActionsTab({
   profilePicture,
   caseNumber,
   tagsArray,
+  csvdata,
   handleSearch,
   handleUpload,
   handleTagSelect,
@@ -50,6 +50,7 @@ export default function ActionsTab({
   profilePicture: string;
   caseNumber: string;
   tagsArray?: OptionsType[];
+  csvdata?: any;
   handleSearch: (val: string) => void;
   handleTagSelect?: (val: string) => void;
   handleUpload?: () => void;
@@ -197,16 +198,34 @@ export default function ActionsTab({
             {tab === CaseDetailEnum.reports &&
               tagsArray &&
               tagsArray.length && (
-                <FilterDrop
-                  title="Tags"
-                  options={tagsArray.slice(0, tagsArray.length - 1)}
-                  handleSelect={(option) =>
-                    handleTagSelect && handleTagSelect(option)
-                  }
-                  absoluteStyle={{
-                    right: "0px",
-                  }}
-                />
+                <Stack direction="row" gap={pxToRem(16)}>
+                  <FilterDrop
+                    title="Tags"
+                    options={tagsArray.slice(0, tagsArray.length - 1)}
+                    handleSelect={(option) =>
+                      handleTagSelect && handleTagSelect(option)
+                    }
+                    absoluteStyle={{
+                      right: "0px",
+                    }}
+                  />
+                  <ExportToCSV csvdata={csvdata}>
+                    <Button
+                      sx={{
+                        backgroundColor: NEUTRAL[0],
+                        border: `1px solid ${NEUTRAL[200]}`,
+                        "&:hover": {
+                          background: PRIMARY[25],
+                          border: `1px solid ${NEUTRAL[200]}`,
+                        },
+                      }}
+                    >
+                      <Typography variant="subtitle1" color={SECONDARY[400]}>
+                        Export
+                      </Typography>
+                    </Button>
+                  </ExportToCSV>
+                </Stack>
               )}
           </Stack>
         </Stack>

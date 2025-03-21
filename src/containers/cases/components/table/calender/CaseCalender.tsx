@@ -21,15 +21,7 @@ export default function CaseCalender({
     onDateChange(item);
   };
   return (
-    <Stack
-      sx={
-        {
-          // width: pxToRem(527),
-          // padding: pxToRem(20),
-          // gap: pxToRem(32),
-        }
-      }
-    >
+    <Stack>
       <Stack
         direction={"row"}
         alignItems={"center"}
@@ -37,11 +29,11 @@ export default function CaseCalender({
         padding={pxToRem(20)}
         // height={pxToRem(64)}
       >
-        <Stack gap={1}>
+        <Stack>
           <Typography
             color={SECONDARY[500]}
             fontWeight={700}
-            fontSize={pxToRem(28)}
+            fontSize={pxToRem(22)}
           >
             Target Completion
           </Typography>
