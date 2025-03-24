@@ -20,7 +20,7 @@ export const createParams = (file: any) => {
   const fileName = generateUniqueFileName(file);
   return {
     Bucket: AppBucketName,
-    Key: fileName,
+    Key: file.name,
     Body: file,
     ContentType: file.type,
   };
@@ -40,4 +40,13 @@ export const uploadFileToS3 = async (file: any) => {
 
 export const filePath = (fileName: string) =>
   `https://${AppBucketName}.s3.amazonaws.com/${fileName}`;
-export const getFileKey = (url: string) => url.split("/").pop();
+
+export const getFileKey = (url: string) => {
+  try {
+    const urlObj = new URL(url);
+    return decodeURIComponent(urlObj.pathname.substring(1)); // Remove leading "/"
+  } catch (error) {
+    console.error("Invalid URL:", error);
+    return undefined;
+  }
+};

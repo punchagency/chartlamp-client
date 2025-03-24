@@ -13,6 +13,7 @@ export const showFilterVar: ReactiveVar<boolean> = makeVar<boolean>(
 );
 
 export const notesModalVar: ReactiveVar<boolean> = makeVar<boolean>(false);
+export const progressModalVar: ReactiveVar<boolean> = makeVar<boolean>(false);
 
 export const showTimelIneCalenderVar: ReactiveVar<boolean> = makeVar<boolean>(
   false

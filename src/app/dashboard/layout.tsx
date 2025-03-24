@@ -15,6 +15,8 @@ import React, { useState } from "react";
 import "react-calendar/dist/Calendar.css";
 import "../globals.css";
 import { successAlertVar, errorAlertVar } from "@/state";
+import CompletedAlert from "@/containers/cases/components/uploadCase/completedAlert";
+import { progressModalVar } from "@/containers/cases/caseDetail/state";
 
 export default function DashboardLayout({
   children,
@@ -23,6 +25,7 @@ export default function DashboardLayout({
 }) {
   const uploadModalState = useReactiveVar(uploadModalVar);
   const shareModalState = useReactiveVar(shareModalVar);
+  const progressModalState = useReactiveVar(progressModalVar);
   const theme = useTheme();
 
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -124,6 +127,7 @@ export default function DashboardLayout({
             {errorAlert}
           </Alert>
         </Snackbar>
+       <CompletedAlert />
       </Box>
     </AuthGuard>
   );

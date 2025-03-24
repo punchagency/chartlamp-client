@@ -13,7 +13,11 @@ import {
   useState,
 } from "react";
 // import { caseData } from "../components/table/constants";
+import useUpdateParams from "@/hooks/useUpdateParams";
+import { CronStatus } from "@/types/case";
+import { useReactiveVar } from "@apollo/client";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { progressModalVar } from "../caseDetail/state";
 import { CasesEnum } from "../constants";
 
 interface Data {
@@ -145,7 +149,13 @@ export function useCases() {
   const { tab } = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const activeCaseId = searchParams.get("activeCaseId");
   const defaultUpload = searchParams.get("upload") === "true";
+  const minProgressModal = searchParams.get("bg") === "true";
+
+  const { reloadParams } = useUpdateParams();
+
+  const progressModalState = useReactiveVar(progressModalVar);
 
   const [caseList, setCaseList] = useState<CaseDetail[]>([]);
   const [loading, setLoading] = useState(false);
@@ -164,11 +174,14 @@ export function useCases() {
   const [selected, setSelected] = useState<readonly number[]>([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-
   const [filter, setFilter] = useState({
     claimStatus: "",
     showFav: false,
   });
+
+  const [activeCaseDetails, setActiveCaseDetails] = useState<CaseDetail | null>(
+    null
+  );
 
   const [optimisticCases, updateOptimisticMessage] = useOptimistic(
     caseList,
@@ -460,12 +473,66 @@ export function useCases() {
       handleRequestSort(event, property);
     };
 
+  const getCaseExtractionStatus = async () => {
+    const response = await axiosInstance.get(
+      `${endpoints.case.detail}/${activeCaseId}/status`
+    );
+    if (response.data) {
+      if (
+        response.data &&
+        response.data._id &&
+        response.data.percentageCompletion === 100
+      ) {
+        handleNavigateToDetails(response.data._id);
+      } else setActiveCaseDetails(response.data);
+    }
+  };
+
+  const handleCloseCaseProcessModal = () => {
+    progressModalVar(false);
+    setActiveCaseDetails(null);
+    reloadParams({ bg: true });
+  };
+
   const selectedCase = useMemo(() => {
     if (caseList.length) {
       const iCase = caseList.find((item) => item._id === selectedCaseId);
       return iCase;
     }
   }, [caseList, selectedCaseId]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (
+        activeCaseId &&
+        activeCaseDetails &&
+        activeCaseDetails.cronStatus !== CronStatus.Processed
+      ) {
+        getCaseExtractionStatus();
+      } else {
+        clearInterval(interval);
+      }
+    }, 5000);
+    if (!progressModalState || !activeCaseDetails) {
+      clearInterval(interval);
+    }
+
+    return () => clearInterval(interval);
+  }, [activeCaseId, activeCaseDetails, progressModalState]);
+
+  useEffect(() => {
+    (async () => {
+      if (activeCaseId) {
+        if (!activeCaseDetails) await getCaseExtractionStatus();
+        if (!progressModalState && activeCaseDetails && !minProgressModal) {
+          progressModalVar(true);
+        }
+      }
+    })();
+    return () => {
+      if (activeCaseId) localStorage.setItem("activeCaseId", activeCaseId);
+    };
+  }, [activeCaseId, activeCaseDetails]);
 
   useEffect(() => {
     getCases();
@@ -500,6 +567,7 @@ export function useCases() {
     openCaseDetailsModal,
     selectedCase,
     filter,
+    activeCaseDetails,
     handleChangePage,
     handleChangeRowsPerPage,
     getCases,
@@ -519,5 +587,6 @@ export function useCases() {
     createSortHandler,
     formatDate,
     handleCaseDetailsModalChange,
+    handleCloseCaseProcessModal,
   };
 }

@@ -24,9 +24,7 @@ export default function CasesPageContainer() {
     >
       <NavBack handleNavigation={goBack} />
       <Stack width={"100%"}>
-        <CasesTable
-      
-        />
+        <CasesTable />
       </Stack>
     </Stack>
   );

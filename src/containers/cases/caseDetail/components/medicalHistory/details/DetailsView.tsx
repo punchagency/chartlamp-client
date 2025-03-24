@@ -117,7 +117,7 @@ export default function DetailsView({ caseDetail, tagsArray }: MapViewProps) {
     const diseaseClass = findDiseaseClass();
     if (!diseaseClass) return;
 
-    const selectedIcdCode = diseaseClass.icdCode;
+     const selectedIcdCode = diseaseClass.icdCode;
 
     // Check if disease name is already mapped by ICD code
     const existingName = getName(

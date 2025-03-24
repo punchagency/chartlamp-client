@@ -1,13 +1,25 @@
 import OutlinedButton from "@/components/OutlinedButton";
+import { usePostRequests } from "@/hooks/useRequests";
 import { InvitationDetail } from "@/interface";
+import { endpoints } from "@/lib/axios";
+import { successAlertVar } from "@/state";
 import { ERROR, NEUTRAL, PRIMARY, pxToRem, SECONDARY } from "@/theme";
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
-import { Avatar, Stack, styled, TableCell, tableCellClasses, TableContainer, Typography } from "@mui/material";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import {
+  Avatar,
+  Stack,
+  styled,
+  TableCell,
+  tableCellClasses,
+  TableContainer,
+  Typography,
+} from "@mui/material";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import moment from "moment";
+import { useEffect } from "react";
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -23,8 +35,20 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
   },
 }));
 
-export default function TeamInvitationTable({invitations, loading}: {invitations: InvitationDetail[] | undefined, loading: boolean}) {
- 
+export default function TeamInvitationTable({
+  invitations,
+  loading,
+}: {
+  invitations: InvitationDetail[] | undefined;
+  loading: boolean;
+}) {
+  const { data, loading: isReminding, error, postRequests } = usePostRequests();
+  useEffect(() => {
+    if (data) {
+      successAlertVar("Reminder sent successfully");
+    }
+  }, [data]);
+
   return (
     <TableContainer>
       <Table
@@ -80,7 +104,7 @@ export default function TeamInvitationTable({invitations, loading}: {invitations
               <StyledTableCell component="th" scope="row">
                 <Stack direction="row" alignItems="center" spacing={2}>
                   <Avatar
-                    src={''}
+                    src={""}
                     alt={row.email}
                     sx={{ width: 40, height: 40 }}
                   />
@@ -89,7 +113,9 @@ export default function TeamInvitationTable({invitations, loading}: {invitations
                   </Stack>
                 </Stack>
               </StyledTableCell>
-              <StyledTableCell align="center">{moment(row.createdAt).format('MMMM Do YYYY')}</StyledTableCell>
+              <StyledTableCell align="center">
+                {moment(row.createdAt).format("MMMM Do YYYY")}
+              </StyledTableCell>
               <StyledTableCell align="center">
                 <OutlinedButton
                   bgColor={ERROR["50"]}
@@ -119,8 +145,13 @@ export default function TeamInvitationTable({invitations, loading}: {invitations
                       backgroundColor: PRIMARY["25"],
                     },
                   }}
+                  onClick={() => {
+                    postRequests(endpoints.invitation.reminder, {
+                      email: row.email,
+                    });
+                  }}
                 >
-                  Send Reminder
+                  {isReminding ? "Laoding..." : "Send Reminder"}
                 </OutlinedButton>
               </StyledTableCell>
             </TableRow>
@@ -128,29 +159,29 @@ export default function TeamInvitationTable({invitations, loading}: {invitations
         </TableBody>
       </Table>
       {(!Boolean(invitations?.length) || loading) && (
-          <Stack
-            sx={{
-              width: "100%",
-              height: "100%",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            {!loading ? (
-              <Stack>
-                <Typography variant="h6" color={SECONDARY[400]}>
-                  No data available
-                </Typography>
-              </Stack>
-            ) : (
-              <Stack>
-                <Typography variant="h6" color={SECONDARY[400]}>
-                  Loading...
-                </Typography>
-              </Stack>
-            )}
-          </Stack>
-        )}
+        <Stack
+          sx={{
+            width: "100%",
+            height: "100%",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          {!loading ? (
+            <Stack>
+              <Typography variant="h6" color={SECONDARY[400]}>
+                No data available
+              </Typography>
+            </Stack>
+          ) : (
+            <Stack>
+              <Typography variant="h6" color={SECONDARY[400]}>
+                Loading...
+              </Typography>
+            </Stack>
+          )}
+        </Stack>
+      )}
     </TableContainer>
   );
 }

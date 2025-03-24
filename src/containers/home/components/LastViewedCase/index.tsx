@@ -69,7 +69,7 @@ export default function LastViewedCase({
               }}
               onClick={() =>
                 router.push(
-                  `/dashboard/case/${lastViewed._id}/${CaseDetailEnum.medicalHistory}?view=${MapViewEnum.detailsView}`
+                  `/dashboard/case/${lastViewed._id}/${CaseDetailEnum.medicalHistory}?view=${MapViewEnum.mapView}`
                 )
               }
             >

@@ -44,40 +44,7 @@ function LinearProgressWithLabel(
   );
 }
 
-export default function LinearWithValueLabel({
-  status,
-}: {
-  status: CronStatus;
-}) {
-  const [progress, setProgress] = useState(10);
-
-  //   useEffect(() => {
-  //     const timer = setInterval(() => {
-  //       setProgress((prevProgress) =>
-  //         prevProgress >= 100 ? 10 : prevProgress + 10
-  //       );
-  //     }, 800);
-  //     return () => {
-  //       clearInterval(timer);
-  //     };
-  //   }, []);
-
-    useEffect(() => {
-    switch (status) {
-      case CronStatus.Pending:
-        setProgress(10);
-        break;
-      case CronStatus.Processing:
-        setProgress(50);
-        break;
-      case CronStatus.Processed:
-        setProgress(100);
-        break;
-      default:
-        // setProgress(10);
-        break;
-    }
-  }, [status]);
+export default function LinearWithValueLabel({ progress }: { progress: number }) {
 
   return (
     <Box sx={{ width: "100%" }}>

@@ -11,7 +11,7 @@ export default function UploadedItemRow({
   fileName,
   removeFromList,
 }: {
-  state: "uploading" | "list";
+  state: "uploading" | "uploaded";
   progress: number;
   fileName: string;
   removeFromList: () => void;
@@ -48,7 +48,7 @@ export default function UploadedItemRow({
           >
             {fileName}
           </Typography>
-          {state === "list" && (
+          {state === "uploaded" && (
             <Typography
               variant="subtitle1"
               color={SECONDARY[300]}
@@ -91,7 +91,7 @@ export default function UploadedItemRow({
           )}
         </Stack>
       </Stack>
-      {state === "list" && (
+      {state === "uploaded" && (
         <IconContainer tooltip="Delete" onClick={removeFromList}>
           <DeleteIcon />
         </IconContainer>

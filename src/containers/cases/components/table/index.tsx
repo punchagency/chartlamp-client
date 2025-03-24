@@ -22,12 +22,14 @@ import TableRow from "@mui/material/TableRow";
 import { styled } from "@mui/material/styles";
 import { visuallyHidden } from "@mui/utils";
 import { format } from "date-fns";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { progressModalVar } from "../../caseDetail/state";
 import { CasesEnum, StatusFilter } from "../../constants";
 import { useCases } from "../../hooks/useCases";
 import { showFilterVar } from "../../state";
 import DeleteCase from "../DeleteCase";
 import FilterDrop from "../FilterDrop";
+import ProgressModal from "../progressModal";
 import { ArchiveIcon } from "../svgs/ArchiveIcon";
 import { DeleteIcon } from "../svgs/DeleteIcon";
 import { RetryIcon } from "../svgs/RetryIcon";
@@ -36,7 +38,6 @@ import StarIconFilled from "../svgs/StarIconFilled";
 import UploadcaseModal from "../uploadCase";
 import EditCaseDetails from "./EditCaseDetails";
 import TopNav from "./TopNav";
-import CaseCalender from "./calender/CaseCalender";
 import Filter from "./filter";
 
 interface TableProps {
@@ -107,7 +108,9 @@ const actionStyles = {
 
 export default function CasesTable() {
   const showFilter = useReactiveVar(showFilterVar);
+  const progressModalState = useReactiveVar(progressModalVar);
   const [openUploadModal, setOpenUploadModal] = useState<boolean>(false);
+
   const {
     visibleRows,
     rowsPerPage,
@@ -127,6 +130,7 @@ export default function CasesTable() {
     selectedCaseNumber,
     openCaseDetailsModal,
     selectedCase,
+    activeCaseDetails,
     handleChangePage,
     handleChangeRowsPerPage,
     refetch,
@@ -145,7 +149,12 @@ export default function CasesTable() {
     createSortHandler,
     formatDate,
     handleCaseDetailsModalChange,
+    handleCloseCaseProcessModal,
   } = useCases();
+
+  useEffect(() => {
+    console.log("CasesTable", activeCaseDetails, progressModalState);
+  }, [activeCaseDetails, progressModalState]);
 
   return (
     <Stack
@@ -190,6 +199,7 @@ export default function CasesTable() {
             <TableRow>
               <StyledTableCell
                 onClick={() => handleSelectFilter("showFav", "")}
+                align="left"
               >
                 <Tooltip title="Show favorites" arrow placement="top">
                   <IconButton>
@@ -440,6 +450,20 @@ export default function CasesTable() {
             plaintiff={selectedCase?.plaintiff}
             targetCompletion={selectedCase?.targetCompletion}
             caseId={selectedCaseId}
+          />
+        )}
+      </AppDialog>
+
+      <AppDialog
+        open={progressModalState && Boolean(activeCaseDetails)}
+        onClose={() => handleCloseCaseProcessModal()}
+      >
+        {activeCaseDetails && (
+          <ProgressModal
+            percentageCompletion={activeCaseDetails?.percentageCompletion}
+            caseNumber={activeCaseDetails?.caseNumber}
+            img={activeCaseDetails?.user?.profilePicture}
+            name={activeCaseDetails?.user?.name}
           />
         )}
       </AppDialog>

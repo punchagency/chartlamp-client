@@ -1,9 +1,7 @@
-import LinearWithValueLabel from "@/components/LinearProgressWithLabel";
 import { CaseDetail, ReportsDetailWithBodyPart } from "@/interface";
-import { NEUTRAL, SECONDARY, pxToRem } from "@/theme";
-import { CronStatus } from "@/types/case";
+import { NEUTRAL, pxToRem } from "@/theme";
 import { useReactiveVar } from "@apollo/client/react/hooks";
-import { Stack, Typography } from "@mui/material";
+import { Stack } from "@mui/material";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo } from "react";
 import { MapViewEnum } from "../../constants";
@@ -185,7 +183,7 @@ export default function MapView({ caseDetail, loading }: MapViewProps) {
             caseDetail.cronStatus === "processed" &&
             getView}
         </Stack>
-        {(!Boolean(caseDetail?.reports.length) ||
+        {/* {(!Boolean(caseDetail?.reports.length) ||
           loading ||
           caseDetail?.cronStatus !== "processed") && (
           <Stack
@@ -218,13 +216,13 @@ export default function MapView({ caseDetail, loading }: MapViewProps) {
                     }. Please check back later`}
                   </Typography>
                   <LinearWithValueLabel
-                    status={caseDetail?.cronStatus as CronStatus}
+                    progress={caseDetail?.percentageCompletion || 10}
                   />
                 </Stack>
               </Stack>
             )}
           </Stack>
-        )}
+        )} */}
       </Stack>
       <Stack
         sx={{
