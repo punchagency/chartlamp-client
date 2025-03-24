@@ -74,6 +74,7 @@ export const endpoints = {
   },
   invitation: {
     create: "/invitation",
+    reminder: "/invitation/reminder",
     accept: "/invitation/accept",
     decline: "/invitation/decline",
     get: "/invitation",
