@@ -1,11 +1,19 @@
 import Button from "@/components/Button";
-import FormProvider, { RHFSelect } from "@/components/hook-form";
 import { IconContainer } from "@/components/IconContainer";
+import FormProvider, { RHFSelect } from "@/components/hook-form";
 import { CloseModalIcon } from "@/components/svgs/CloseModalIcon";
 import { usePostRequests } from "@/hooks/useRequests";
 import { endpoints } from "@/lib/axios";
+import { successAlertVar } from "@/state";
 import { NEUTRAL, PRIMARY, SECONDARY, pxToRem } from "@/theme";
-import { Chip, InputAdornment, MenuItem, Stack, TextField, Typography } from "@mui/material";
+import {
+  Chip,
+  InputAdornment,
+  MenuItem,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
 import { useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 
@@ -17,10 +25,9 @@ type FormValuesProps = {
 };
 
 export default function InviteModal({ onClose }: { onClose: () => void }) {
-
   const defaultValues = {
-    email: '',
-    role: 'admin',
+    email: "",
+    role: "admin",
     invites: [],
   };
 
@@ -50,26 +57,31 @@ export default function InviteModal({ onClose }: { onClose: () => void }) {
     try {
       // Combine email and invites data
       const combinedData = [
-        ...(data.email && data.role ? [{ email: data.email, role: data.role }] : []),
-        ...(data.invites || [])
+        ...(data.email && data.role
+          ? [{ email: data.email, role: data.role }]
+          : []),
+        ...(data.invites || []),
       ];
 
       // Send all requests concurrently
       await Promise.all(
-        combinedData.map(element => postRequests(endpoints.invitation.create, element))
+        combinedData.map((element) =>
+          postRequests(endpoints.invitation.create, element)
+        )
       );
 
-      onClose();
+      successAlertVar("Invitation sent successfully");
+      window.location.reload();
     } catch (err) {
       reset();
     }
   };
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key === 'Enter') {
+    if (event.key === "Enter") {
       event.preventDefault();
-      const email = getValues('email');
-      const role = getValues('role');
+      const email = getValues("email");
+      const role = getValues("role");
       if (email && role) {
         if (editingIndex !== null) {
           update(editingIndex, { email, role });
@@ -77,15 +89,15 @@ export default function InviteModal({ onClose }: { onClose: () => void }) {
         } else {
           append({ email, role });
         }
-        setValue('email', '');
+        setValue("email", "");
       }
     }
   };
 
   const handleEdit = (index: number) => {
     const invite = fields[index];
-    setValue('email', invite.email);
-    setValue('role', invite.role);
+    setValue("email", invite.email);
+    setValue("role", invite.role);
     setEditingIndex(index);
   };
 
@@ -145,14 +157,14 @@ export default function InviteModal({ onClose }: { onClose: () => void }) {
             name="email"
             placeholder="Email"
             onKeyDown={handleKeyDown}
-            value={watch('email')}
+            value={watch("email")}
             sx={{
-              borderRadius: '16px',
-              '& .MuiOutlinedInput-root': {
-                borderRadius: '16px',
+              borderRadius: "16px",
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "16px",
               },
             }}
-            onChange={(e) => setValue('email', e.target.value)}
+            onChange={(e) => setValue("email", e.target.value)}
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
@@ -167,20 +179,23 @@ export default function InviteModal({ onClose }: { onClose: () => void }) {
                     sx={{
                       minWidth: pxToRem(120),
                       py: pxToRem(8),
-                      border: 'none',
-                      '&:hover': {
-                        borderColor: 'inherit',
+                      border: "none",
+                      "&:hover": {
+                        borderColor: "inherit",
                       },
-                      '&.Mui-focused': {
-                        borderColor: 'inherit',
+                      "&.Mui-focused": {
+                        borderColor: "inherit",
                       },
                     }}
                   >
                     {[
-                      { value: 'admin', label: 'All access' },
-                      { value: 'user', label: 'Can view' },
-                    ].map(option => (
-                      <MenuItem key={option.value} value={option.value}> {option.label}</MenuItem>
+                      { value: "admin", label: "Admin" },
+                      { value: "user", label: "User" },
+                    ].map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {" "}
+                        {option.label}
+                      </MenuItem>
                     ))}
                   </RHFSelect>
                 </InputAdornment>
@@ -209,13 +224,14 @@ export default function InviteModal({ onClose }: { onClose: () => void }) {
           </Button>
           <Button
             type="submit"
+            disabled={loading}
             sx={{
               height: pxToRem(48),
               width: "100%",
               borderRadius: pxToRem(16),
             }}
           >
-            Send invite
+            {loading ? "Sending..." : "Send invite"}
           </Button>
         </Stack>
       </Stack>

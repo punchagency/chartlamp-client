@@ -121,7 +121,7 @@ export default function FavoriteCases({
               isLast={favoriteCases.length - 1 === index}
               onClick={() =>
                 router.push(
-                  `/dashboard/case/${item._id}/${CaseDetailEnum.medicalHistory}?view=${MapViewEnum.detailsView}`
+                  `/dashboard/case/${item._id}/${CaseDetailEnum.medicalHistory}?view=${MapViewEnum.mapView}`
                 )
               }
             />
