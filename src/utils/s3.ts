@@ -47,6 +47,6 @@ export const getFileKey = (url: string) => {
     return decodeURIComponent(urlObj.pathname.substring(1)); // Remove leading "/"
   } catch (error) {
     console.error("Invalid URL:", error);
-    return null;
+    return undefined;
   }
 };
